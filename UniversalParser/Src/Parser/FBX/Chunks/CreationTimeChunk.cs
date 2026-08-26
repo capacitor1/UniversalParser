@@ -1,0 +1,80 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace UniversalParser.Src.Parser.FBX.Chunks
+{
+    internal static class CreationTimeChunk
+    {
+        public static ParseResult Parse(
+            FBXParser parser,
+            Node node,
+            FBXNodeHeader header)
+        {
+            ArgumentNullException.ThrowIfNull(parser);
+            ArgumentNullException.ThrowIfNull(node);
+
+            var dataLines = new List<(string K, string V)>();
+
+            bool parsed =
+                FBXPropertyReader.TryReadProperties(
+                    parser,
+                    header,
+                    out List<FBXPropertyValue> properties,
+                    out long unparsedLength);
+
+            if (!parsed || properties.Count != 1)
+            {
+                dataLines.Add(
+                    (
+                        "<Error>",
+                        "The CreationTime property could not be decoded."
+                    ));
+            }
+            else if (properties[0].Value is string value)
+            {
+                dataLines.Add(("CreationTime", value));
+            }
+            else
+            {
+                dataLines.Add(
+                    (
+                        "<Error>",
+                        "CreationTime does not contain a string property."
+                    ));
+            }
+
+            if (unparsedLength > 0)
+            {
+                dataLines.Add(
+                    (
+                        "<PayloadLength>",
+                        FBXUtil.FormatBytes(unparsedLength)
+                    ));
+            }
+
+            if (header.IsTruncated)
+            {
+                dataLines.Add(
+                    (
+                        "<Warning>",
+                        "The CreationTime node is truncated."
+                    ));
+            }
+
+            return new ParseResult
+            {
+                Title = FBXUtil.MakeTitle(
+                    "CreationTime",
+                    header.Name),
+
+                Position = node.Position,
+                Length = node.Length,
+                DataLines = dataLines,
+
+                RawData = parser.CreateRawStream(
+                    header.NodeStart,
+                    (long)node.Length),
+            };
+        }
+    }
+}

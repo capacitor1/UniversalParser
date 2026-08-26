@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Globalization;
+using System.Text.Unicode;
 
 namespace UniversalParser.Src.Parser.RIFF.Chunks
 {
@@ -57,6 +59,22 @@ namespace UniversalParser.Src.Parser.RIFF.Chunks
 
         public static short ReadInt16(ReadOnlySpan<byte> span, bool bigEndian) =>
             unchecked((short)RIFFUtil.ReadUInt16(span, bigEndian));
+        
+        public static float ReadSingle(ReadOnlySpan<byte> span, bool bigEndian) =>
+            BitConverter.Int32BitsToSingle(ReadInt32(span, bigEndian));
+
+        /// <summary>IEEE-754 单精度的原生输出：最短可往返表示，非有限值输出 NaN / Infinity。</summary>
+        public static string FormatSingle(float value) =>
+            value.ToString("R", CultureInfo.InvariantCulture);
+
+        private static readonly string[] PitchClassNames =
+            ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+        /// <summary>MIDI 音高号转科学音名（60 = C4）；越界时如实说明而不编造音名。</summary>
+        public static string FormatMidiNote(int note) =>
+            note is < 0 or > 127
+                ? "out of MIDI range"
+                : $"{PitchClassNames[note % 12]}{note / 12 - 1}";
 
         /// <summary>把节点负载读入数组，返回实际读到的字节数。</summary>
         public static int ReadPayload(RIFFParser parser, in RIFFChunkHeader header, int maxBytes, out byte[] buffer)
@@ -108,6 +126,46 @@ namespace UniversalParser.Src.Parser.RIFF.Chunks
             if (nul < 0) return false;
             return !IsAllZero(span[(nul + 1)..]);
         }
+
+        /// <summary>
+        /// 按 NUL 切分 ZSTR 序列，返回各字符串的字节范围（不含终止符）。
+        /// consumed 为已确定归属的字节数（含终止符）；未终止的尾段不计入，
+        /// 故调用方可用 consumed 直接喂给 AddUnparsedLength。
+        /// </summary>
+        public static List<(int Offset, int Length)> SplitNulTerminated(
+            ReadOnlySpan<byte> span, int maxItems, out int consumed)
+        {
+            var items = new List<(int Offset, int Length)>();
+            consumed = 0;
+
+            while (consumed < span.Length && items.Count < maxItems)
+            {
+                int nul = span[consumed..].IndexOf((byte)0);
+                if (nul < 0) break; // 尾段无终止符，留给调用方诊断
+
+                items.Add((consumed, nul));
+                consumed += nul + 1;
+            }
+            return items;
+        }
+
+        /// <summary>
+        /// 未声明代码页的字节串：按 Latin-1 逐字节映射，保证无损可逆
+        /// （不会像 ASCII 解码那样把高位字节吞成 '?'）。
+        /// </summary>
+        public static string DecodeUnknownCodePage(ReadOnlySpan<byte> span) =>
+            Encoding.Latin1.GetString(span);
+
+        /// <summary>高位字节计数。传统日文软件常用 Shift-JIS，此计数用于提示而非解码。</summary>
+        public static int CountNonAscii(ReadOnlySpan<byte> span)
+        {
+            int count = 0;
+            foreach (byte b in span)
+                if (b >= 0x80) count++;
+            return count;
+        }
+        /// <summary>字节序列是否构成合法 UTF-8。用于代码页未声明的文本字段的编码判定。</summary>
+        public static bool LooksLikeUtf8(ReadOnlySpan<byte> span) => Utf8.IsValid(span);
 
         /// <summary>CSV 单元格内的可读文本不得含逗号或引号，否则破坏列对齐。</summary>
         public static string CsvSafe(string text)

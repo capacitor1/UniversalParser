@@ -28,16 +28,34 @@ namespace UniversalParser.Src.Parser
             {
                 return new JPEG.JPEGParser(fileStream);
             }
+            else if (EBML.EBMLParser.IsValid(fileStream))
+            {
+                return new EBML.EBMLParser(fileStream);
+            }
+            else if (FLV.FLVParser.IsValid(fileStream))
+            {
+                return new FLV.FLVParser(fileStream);
+            }
             else if (MPEG.MPEGParser.IsValid(fileStream))
             {
                 return new MPEG.MPEGParser(fileStream);
             }
-
-            // TODO: Add other formats here when implemented
-            // if (RIFF.RIFFParser.IsValid(fileStream)) { ... }
-            // if (Matroska.MatroskaParser.IsValid(fileStream)) { ... }
-
-            throw new NotSupportedException("Unknown or unsupported file format.");
+            else if (ASF.ASFParser.IsValid(fileStream))
+            {
+                return new ASF.ASFParser(fileStream);
+            }
+            else if (FBX.FBXParser.IsValid(fileStream))
+            {
+                return new FBX.FBXParser(fileStream);
+            }
+            else if (RawData.RawDataParser.IsValid(fileStream))
+            {
+                return new RawData.RawDataParser(fileStream);
+            }
+            else
+            {
+                throw new NotSupportedException("failed to read.");
+            }
         }
     }
 }

@@ -37,6 +37,15 @@ namespace UniversalParser.Src.Parser.RIFF
             Register(WaveCueChunk.Parse, "cue ");
             Register(WaveSamplerChunk.Parse, "smpl");
             Register(HashChunk.Parse, "hash");
+            Register(WaveAcidChunk.Parse, "acid");
+            Register(WaveId3Chunk.Parse, "id3 ");
+            Register(WaveId3Chunk.Parse, "ID3 ");
+            Register(WaveInstChunk.Parse, "inst");
+            Register(WaveInternetCoChunk.Parse, "iwem");
+            Register(WaveInternetCoChunk.Parse, "iwep");
+            Register(WaveLablChunk.Parse, "labl");
+            Register(WaveLogicProChunk.Parse, "LGWV");
+            Register(WaveLogicResUChunk.Parse, "ResU");
 
             // ---- AVI 头部 ----
             Register(AviMainHeaderChunk.Parse, "avih");

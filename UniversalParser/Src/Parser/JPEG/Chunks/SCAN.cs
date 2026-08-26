@@ -19,7 +19,7 @@ namespace UniversalParser.Src.Parser.JPEG.Chunks
 
             return new ParseResult
             {
-                Title = $"(EntropyCodedData) 'SCAN'",
+                Title = $"EntropyCodedData 'SCAN'",
                 Position = node.Position,
                 Length = node.Length,
                 DataLines = dataLines,

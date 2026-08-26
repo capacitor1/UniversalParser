@@ -22,17 +22,17 @@
             {
                 int rstIndex = marker - 0xFFD0;
 
-                title = $"RestartMarker (RST{rstIndex}) '{node.NodeName}'";
+                title = $"RestartMarker(RST{rstIndex}) '{node.NodeName}'";
 
                 dataLines.Add(("RestartIndex", rstIndex.ToString()));
             }
             else if (marker == 0xFFD8)
             {
-                title = $"StartOfImage (SOI) '{node.NodeName}'";
+                title = $"StartOfImage(SOI) '{node.NodeName}'";
             }
             else if (marker == 0xFFD9)
             {
-                title = $"EndOfImage (EOI) '{node.NodeName}'";
+                title = $"EndOfImage(EOI) '{node.NodeName}'";
             }
             else
             {

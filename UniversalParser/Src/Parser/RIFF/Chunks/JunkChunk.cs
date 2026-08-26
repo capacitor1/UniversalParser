@@ -16,6 +16,7 @@ namespace UniversalParser.Src.Parser.RIFF.Chunks
             ["JUNQ"] = "Padding",       // 部分写入器使用的等价变体
             ["PAD "] = "Padding",       // BWF / 广播类文件常见
             ["FLLR"] = "Filler",        // 扇区对齐填充（Sound Forge 等）
+            ["Fake"] = "Padding",
         };
 
         public static ParseResult Parse(RIFFParser parser, Node node, RIFFChunkHeader header)
