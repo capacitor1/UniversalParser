@@ -380,7 +380,7 @@ namespace UniversalParser
 
         private BufferedTreeView DataStructureTreeV;
         private ImageList DataStructureTreeIcons;
-        private MenuStrip Menu;
+        private new MenuStrip Menu;
         private ToolStripMenuItem fileToolStripMenuItem;
         private ToolStripMenuItem Menu_Open;
         private ToolStripMenuItem Menu_Close;
