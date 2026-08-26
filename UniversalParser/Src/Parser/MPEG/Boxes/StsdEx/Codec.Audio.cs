@@ -14,7 +14,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
         //       uint8 mode_change_period; uint8 frames_per_sample;
         //   }
         // =====================================================================
-        public static void ParseDamr(ReadOnlySpan<byte> d, LineWriter w, ParseCtx ctx = null)
+        public static void ParseDamr(ReadOnlySpan<byte> d, LineWriter w, ParseCtx? ctx = null)
         {
             var c = new Cur(d);
 
@@ -104,7 +104,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
         //   ALACChannelLayoutInfo (24, optional)
         // NOTE: this box has the SAME fourcc as its parent sample entry.
         // =====================================================================
-        public static void ParseAlacConfig(ReadOnlySpan<byte> d, LineWriter w, ParseCtx ctx = null)
+        public static void ParseAlacConfig(ReadOnlySpan<byte> d, LineWriter w, ParseCtx? ctx = null)
         {
             var c = new Cur(d);
 
@@ -238,7 +238,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
         //   uint16 mpegh3daConfigLength
         //   uint8  mpegh3daConfig[mpegh3daConfigLength]
         // =====================================================================
-        public static void ParseMhaC(ReadOnlySpan<byte> d, LineWriter w, ParseCtx ctx = null)
+        public static void ParseMhaC(ReadOnlySpan<byte> d, LineWriter w, ParseCtx? ctx = null)
         {
             var c = new Cur(d);
 
@@ -255,7 +255,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
             w.Add("mpegh3da_config_length", cfgLength);
 
             // RFC 6381 / 23008-3 clause 21: <4CC>.0x<profile-level-id>
-            string fourcc = ctx?.EntryType;
+            string fourcc = ctx!.EntryType;
             if (fourcc is not ("mha1" or "mha2" or "mhm1" or "mhm2")) fourcc = "mhm1";
             w.Add("codec_string", $"{fourcc}.0x{profileLevel:X2}");
 
@@ -379,7 +379,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
         //   uint8 format_flags      // bit0 = 1 -> little-endian, else big-endian
         //   uint8 PCM_sample_size   // in bits
         // =====================================================================
-        public static void ParsePcmC(ReadOnlySpan<byte> d, LineWriter w, ParseCtx ctx = null)
+        public static void ParsePcmC(ReadOnlySpan<byte> d, LineWriter w, ParseCtx? ctx = null)
         {
             var c = new Cur(d);
 
@@ -402,7 +402,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
 
             w.Add("pcm_sample_size", $"{sampleSize} bit");
 
-            string entry = ctx?.EntryType;
+            string entry = ctx!.EntryType;
             bool isFloat = entry == "fpcm";
             bool isInt = entry == "ipcm";
 
@@ -470,7 +470,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
         //   }
         //   // object_count is DERIVED from baseChannelCount, not stored
         // =====================================================================
-        public static void ParseChnl(ReadOnlySpan<byte> d, LineWriter w, ParseCtx ctx = null)
+        public static void ParseChnl(ReadOnlySpan<byte> d, LineWriter w, ParseCtx? ctx = null)
         {
             var c = new Cur(d);
 
@@ -499,7 +499,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
             else if (c.Left > 0) w.Add("trailing_bytes", $"{c.Left}  {Helper.Hex(d.Slice(c.P), 16)}");
         }
 
-        private static void ParseChnlV0(ref Cur c, LineWriter w, ParseCtx ctx)
+        private static void ParseChnlV0(ref Cur c, LineWriter w, ParseCtx? ctx)
         {
             byte streamStructure = c.U8();
             w.Add("stream_structure", DescribeStreamStructure(streamStructure));
@@ -527,7 +527,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
                 }
                 else
                 {
-                    w.Add("defined_layout", $"{(CicpChannelCount(definedLayout) is int n2 && n2 > 0 ? CicpChannelConfigName(definedLayout) : CicpChannelConfigName(definedLayout))}  (CICP {definedLayout})");
+                    w.Add("defined_layout", $"{(CicpChannelCount(definedLayout) > 0 ? CicpChannelConfigName(definedLayout) : "CicpChannelCount(definedLayout) < 0")}  (CICP {definedLayout})");
                     ulong omitted = c.U64();
                     if (!c.Bad) DescribeOmittedChannels(omitted, definedLayout, w);
                 }
@@ -543,7 +543,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
                 w.Add("note", "neither channel- nor object-structured: renderer may choose freely");
         }
 
-        private static void ParseChnlV1(ref Cur c, LineWriter w, ParseCtx ctx)
+        private static void ParseChnlV1(ref Cur c, LineWriter w, ParseCtx? ctx)
         {
             byte b0 = c.U8();
             int streamStructure = (b0 >> 4) & 0x0F;                 // high nibble
@@ -722,7 +722,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
         /// Values 0..29 are the widely-deployed set; higher values were added in later
         /// editions/amendments — verify before relying on them.
         /// </summary>
-        internal static (string Abbr, string Name) OutputChannelPosition(int p) => p switch
+        private static (string Abbr, string Name) OutputChannelPosition(int p) => p switch
         {
             0  => ("L",    "left front"),
             1  => ("R",    "right front"),

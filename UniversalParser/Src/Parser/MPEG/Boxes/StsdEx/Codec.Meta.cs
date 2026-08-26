@@ -244,6 +244,6 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
         };
 
         private static string FriendlyMdtaKey(string key)
-            => MdtaKeyNotes.TryGetValue(key, out var s) ? s : null;
+            => MdtaKeyNotes.TryGetValue(key, out var s) ? s : string.Empty;
     }
 }

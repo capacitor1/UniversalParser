@@ -73,7 +73,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
                 if (streamCount == 0) w.Add("note", "StreamCount must be > 0");
                 if (coupledCount > streamCount) w.Add("note", "CoupledCount must be <= StreamCount");
 
-                string[] speakers = family == 1 ? OpusVorbisLayout(channels) : null;
+                string[] speakers = family == 1 ? OpusVorbisLayout(channels) : [];
                 var layout = new StringBuilder();
 
                 for (int i = 0; i < channels; i++)
@@ -81,14 +81,14 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
                     byte idx = c.U8();
                     if (c.Bad) { w.Add("parse", $"ChannelMapping truncated at index {i}"); return; }
 
-                    string name = speakers != null && i < speakers.Length ? speakers[i] : $"ch{i}";
+                    string name = speakers.Length == 0 && i < speakers.Length ? speakers[i] : $"ch{i}";
                     string src = idx == 255 ? "silence" : DescribeOpusStream(idx, coupledCount);
                     w.Add($"channel_mapping[{i}]", $"{name} <- {src}");
 
                     if (layout.Length > 0) layout.Append(", ");
                     layout.Append(name);
                 }
-                if (speakers != null) w.Add("channel_layout", layout.ToString());
+                if (speakers.Length == 0) w.Add("channel_layout", layout.ToString());
             }
 
             w.Add("codec_string", "opus");   // RFC 6381: no parameters defined

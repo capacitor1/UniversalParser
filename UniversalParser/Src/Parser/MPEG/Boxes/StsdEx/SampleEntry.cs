@@ -42,7 +42,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
             "marl","mari",  // GM
         };
 
-        public static Kind KindOf(string type, string handlerType = null)
+        public static Kind KindOf(string type, string? handlerType = null)
         {
             if (VideoTypes.Contains(type)) return Kind.Video;
             if (AudioTypes.Contains(type)) return Kind.Audio;
@@ -67,8 +67,11 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
             }
         }
 
+        /// <param name="type"></param>
         /// <param name="body">entry payload WITHOUT the 8/16-byte box header.</param>
-        public static void Parse(string type, ReadOnlySpan<byte> body, LineWriter w, string handlerType = null)
+        /// <param name="w"></param>
+        /// <param name="handlerType"></param>
+        public static void Parse(string type, ReadOnlySpan<byte> body, LineWriter w, string? handlerType = null)
         {
             var c = new Cur(body);
             var kind = KindOf(type, handlerType);
@@ -77,7 +80,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
             w.Add("data_reference_index", c.U16());
             w.Add("kind", kind.ToString());
 
-            var ctx = new ParseCtx { EntryType = type, HandlerType = handlerType, Kind = kind };
+            var ctx = new ParseCtx { EntryType = type, HandlerType = handlerType!, Kind = kind };
             switch (kind)
             {
                 case Kind.Video: ParseVisual(ref c, w, ctx); break;
@@ -95,7 +98,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
             if (c.Bad) w.Note("WARNING: sample entry truncated / malformed");
         }
         // ---------------- MetaDataSampleEntry family ----------------
-        private static void ParseMetadata(string type, ref Cur c, LineWriter w, ParseCtx ctx = null)
+        private static void ParseMetadata(string type, ref Cur c, LineWriter w, ParseCtx? ctx = null)
         {
             switch (type)
             {
@@ -136,7 +139,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
             static string Or(string s, string fallback) => string.IsNullOrEmpty(s) ? fallback : s;
         }
         // ---------------- VisualSampleEntry (ISO/IEC 14496-12) ----------------
-        private static void ParseVisual(ref Cur c, LineWriter w, ParseCtx ctx = null)
+        private static void ParseVisual(ref Cur c, LineWriter w, ParseCtx? ctx = null)
         {
             c.Skip(2);                                  // pre_defined
             c.Skip(2);                                  // reserved
@@ -167,7 +170,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
         }
 
         // ---------------- AudioSampleEntry (+ QuickTime v1/v2) ----------------
-        private static void ParseAudio(ref Cur c, LineWriter w, ParseCtx ctx = null)
+        private static void ParseAudio(ref Cur c, LineWriter w, ParseCtx? ctx = null)
         {
             ushort version = c.U16();                   // QT version (0 for plain ISO BMFF)
             c.Skip(2);                                  // revision level
@@ -214,7 +217,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
             }
         }
         // ---------------- timed text / subtitle sample entries ----------------
-        private static void ParseText(ref Cur c, LineWriter w, string entryType, ParseCtx ctx = null)
+        private static void ParseText(ref Cur c, LineWriter w, string entryType, ParseCtx? ctx = null)
         {
             switch (entryType)
             {
@@ -240,7 +243,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
         }
 
         // ---------------- child boxes ----------------
-        private static void WalkChildBoxes(ref Cur c, LineWriter w, int depth, ParseCtx ctx = null)
+        private static void WalkChildBoxes(ref Cur c, LineWriter w, int depth, ParseCtx? ctx = null)
         {
             if (depth > 6) return;
 
@@ -266,7 +269,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
             }
         }
 
-        private static void DispatchChild(string t, ReadOnlySpan<byte> p, LineWriter w, int depth, ParseCtx ctx = null)
+        private static void DispatchChild(string t, ReadOnlySpan<byte> p, LineWriter w, int depth, ParseCtx? ctx = null)
         {
             switch (t)
             {

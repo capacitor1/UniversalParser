@@ -16,7 +16,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
         //       codecInitDataSize(16)
         // v0 is deprecated but still exists in the wild, so we branch on version.
         // =====================================================================
-        public static void ParseVpcC(ReadOnlySpan<byte> d, LineWriter w, string entryType = null)
+        public static void ParseVpcC(ReadOnlySpan<byte> d, LineWriter w, string? entryType = null)
         {
             var c = new Cur(d);
             byte version = c.U8();

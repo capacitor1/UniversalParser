@@ -34,7 +34,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes
             // Optional but recommended: resolve hdlr of the parent trak so unknown fourcc
             // can still be parsed as video/audio.  Adapt to your Node API:
             //   string handler = parser.FindHandlerType(node);   // "vide" / "soun" / ...
-            string handler = null;
+            string handler = string.Empty;
 
             for (uint i = 0; i < entryCount; i++)
             {

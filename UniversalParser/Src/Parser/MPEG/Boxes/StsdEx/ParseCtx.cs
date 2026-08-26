@@ -7,16 +7,16 @@
     internal sealed class ParseCtx
     {
         public string EntryType = "";
-        public string HandlerType;
+        public string HandlerType = string.Empty;
         public SampleEntry.Kind Kind;
 
         // AudioSampleEntry header values (for cross-checking against codec configs)
-        public int ChannelCount;
-        public int SampleSize;
-        public double SampleRate;
+        public int ChannelCount = 0;
+        public int SampleSize = 0;
+        public double SampleRate = 0;
 
         // VisualSampleEntry header values
-        public int Width;
-        public int Height;
+        public int Width = 0;
+        public int Height = 0;
     }
 }

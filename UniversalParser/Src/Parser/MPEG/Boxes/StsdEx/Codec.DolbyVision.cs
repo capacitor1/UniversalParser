@@ -21,7 +21,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
         // older (V1.2.93) files leave those 4 bits inside the reserved field.
         // =====================================================================
         public static void ParseDoviConfig(ReadOnlySpan<byte> d, LineWriter w,
-                                           string boxType, string entryType = null)
+                                           string boxType, string? entryType = null)
         {
             if (d.Length < 4)
             {
@@ -187,7 +187,7 @@ namespace UniversalParser.Src.Parser.MPEG.Boxes.StsdEx
         /// The '1' variants mean parameter sets live in the sample entry, the 'e'/'v'
         /// variants mean they are in-band, so we follow the actual sample entry when known.
         /// </summary>
-        private static string DoviCodecFourCc(int profile, string entryType)
+        private static string DoviCodecFourCc(int profile, string? entryType)
         {
             bool inBand = entryType is "avc3" or "hev1" or "dvhe" or "dvav";
 
