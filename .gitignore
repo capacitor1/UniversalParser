@@ -1,0 +1,25 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+dist/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+*.user
+*.suo
+*.DotSettings.user
+
+# Test artifacts
+TestResults/
+*.trx
+coverage*.xml
+
+# Temporary real-world samples (see fixtures/README.md)
+fixtures/*
+!fixtures/README.md
+
+# OS noise
+Thumbs.db
+desktop.ini
+.DS_Store

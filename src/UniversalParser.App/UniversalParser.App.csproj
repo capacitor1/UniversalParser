@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\UniversalParser.Core\UniversalParser.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\app.ico" LogicalName="app.ico" />
+    <EmbeddedResource Include="Assets\Root48.png" LogicalName="tree.root.png" />
+    <EmbeddedResource Include="Assets\Folder48.png" LogicalName="tree.folder.png" />
+    <EmbeddedResource Include="Assets\OpenedFolder48.png" LogicalName="tree.folder-open.png" />
+    <EmbeddedResource Include="Assets\File48.png" LogicalName="tree.file.png" />
+    <EmbeddedResource Include="Assets\Checked48.png" LogicalName="tree.checked.png" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <AssemblyName>UniversalParser</AssemblyName>
+    <AssemblyTitle>UniversalParser</AssemblyTitle>
+    <Product>UniversalParser</Product>
+    <Description>Read-only binary structure parser for container and chunked files.</Description>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+</Project>

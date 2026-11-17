@@ -1,0 +1,5 @@
+{
+  "maxStringBytes": 4194304,
+  "maxBlobBytes": 268435456,
+  "maxDataLines": 10000
+}
