@@ -70,15 +70,14 @@ tree, inspect fields and hex, and export a diagnostic report.*
 
 ## 快速开始
 
-1. 从 [Releases](../../releases) 下载并解压发布包：
+1. 从 [Releases](../../releases) 下载两个附件，放在同一目录：
 
    ```text
-   dist/
-   ├─ UniversalParser.exe                    Windows x64，单文件，framework-dependent
-   └─ universalparser.limits.example.json    可选限制配置示例
+   UniversalParser_1.0.0.exe                 Windows x64，单文件，framework-dependent
+   universalparser.limits.example.json       可选限制配置示例
    ```
 
-2. 双击 `UniversalParser.exe` 启动。
+2. 双击 `UniversalParser_1.0.0.exe` 启动。
 3. 打开文件后，在左侧结构树中选择节点，右侧查看字段与 Hex。
 
 ## 配置
