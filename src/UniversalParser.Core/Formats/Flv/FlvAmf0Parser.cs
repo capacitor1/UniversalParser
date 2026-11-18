@@ -1,6 +1,6 @@
 using System.Globalization;
-using System.Text;
 using UniversalParser.Core.Binary;
+using UniversalParser.Core.Formatting;
 using UniversalParser.Core.Model;
 using UniversalParser.Core.Parsing;
 
@@ -13,8 +13,6 @@ namespace UniversalParser.Core.Formats.Flv;
 /// </summary>
 internal sealed class FlvAmf0Parser
 {
-    private static readonly UTF8Encoding Utf8 = new(false, throwOnInvalidBytes: false);
-
     private readonly ParseContext _context;
     private readonly SourceReader _reader;
     private readonly FieldList _fields;
@@ -525,7 +523,7 @@ internal sealed class FlvAmf0Parser
         }
 
         var bytes = _reader.ReadBytes(length);
-        return Utf8.GetString(bytes);
+        return TextDecoding.Display(bytes, TextEncodings.Utf8);
     }
 
     private void ReportLimit(string code, string message, SourceRange range)

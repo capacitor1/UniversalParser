@@ -5,6 +5,21 @@ namespace UniversalParser.Core.Binary;
 /// </summary>
 public sealed class SourceReadException : IOException
 {
+    public SourceReadException()
+        : base("A bounded source read failed.")
+    {
+    }
+
+    public SourceReadException(string message)
+        : base(message)
+    {
+    }
+
+    public SourceReadException(string message, Exception innerException)
+        : base(message, innerException)
+    {
+    }
+
     public SourceReadException(long offset, int requested, long available, string? message = null)
         : base(message ?? $"Source read failed at offset 0x{offset:X}: requested {requested} byte(s), available {available}.")
     {

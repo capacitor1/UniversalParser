@@ -1,7 +1,7 @@
-using System.Globalization;
-using System.Text;
+using System.Collections.Frozen;
 using System.Text.Unicode;
 using UniversalParser.Core.Binary;
+using UniversalParser.Core.Formatting;
 
 namespace UniversalParser.Core.Formats.Fbx;
 
@@ -11,7 +11,7 @@ namespace UniversalParser.Core.Formats.Fbx;
 /// </summary>
 internal static class FbxFormatting
 {
-    private static readonly Dictionary<char, string> TypeNames = new()
+    private static readonly FrozenDictionary<char, string> TypeNames = new Dictionary<char, string>()
     {
         ['Y'] = "int16",
         ['C'] = "bool",
@@ -26,7 +26,7 @@ internal static class FbxFormatting
         ['l'] = "int64 array",
         ['i'] = "int32 array",
         ['b'] = "bool array",
-    };
+    }.ToFrozenDictionary();
 
     public static string FormatTypeCode(char code) =>
         TypeNames.TryGetValue(code, out var name) ? $"{code} ({name})" : $"{code} (unknown)";
@@ -40,62 +40,16 @@ internal static class FbxFormatting
             ? "64-bit offsets (FBX 7.5 and later)"
             : "32-bit offsets (FBX 7.4 and earlier)";
 
-    public static string FormatText(ReadOnlySpan<byte> utf8Bytes)
-    {
-        if (utf8Bytes.IsEmpty)
-        {
-            return string.Empty;
-        }
+    public static string FormatText(ReadOnlySpan<byte> utf8Bytes) =>
+        TextDecoding.Escaped(utf8Bytes, TextEncodings.Utf8);
 
-        return EscapeText(Encoding.UTF8.GetString(utf8Bytes));
-    }
-
-    public static string EscapeText(string value)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-        var builder = new StringBuilder(value.Length);
-        foreach (var character in value)
-        {
-            switch (character)
-            {
-                case '\0':
-                    builder.Append("\\0");
-                    break;
-                case '\r':
-                    builder.Append("\\r");
-                    break;
-                case '\n':
-                    builder.Append("\\n");
-                    break;
-                case '\t':
-                    builder.Append("\\t");
-                    break;
-                default:
-                    if (character < 0x20 || character == 0x7F)
-                    {
-                        builder.Append("\\x").Append(((int)character).ToString("X2", CultureInfo.InvariantCulture));
-                    }
-                    else
-                    {
-                        builder.Append(character);
-                    }
-
-                    break;
-            }
-        }
-
-        return builder.ToString();
-    }
+    public static string EscapeText(string value) => TextEscaping.Escape(value);
 
     public static string FormatSingle(float value) =>
-        float.IsNaN(value) || float.IsInfinity(value)
-            ? value.ToString(CultureInfo.InvariantCulture)
-            : value.ToString("R", CultureInfo.InvariantCulture);
+        ValueFormat.FloatingPoint(value);
 
     public static string FormatDouble(double value) =>
-        double.IsNaN(value) || double.IsInfinity(value)
-            ? value.ToString(CultureInfo.InvariantCulture)
-            : value.ToString("R", CultureInfo.InvariantCulture);
+        ValueFormat.FloatingPoint(value);
 
     public static string FormatHex(ReadOnlySpan<byte> bytes, int maxBytes) =>
         HexFormatting.Format(bytes, maxBytes);

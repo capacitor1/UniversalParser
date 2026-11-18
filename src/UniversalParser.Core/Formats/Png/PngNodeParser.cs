@@ -1441,11 +1441,11 @@ internal static class PngNodeParser
         {
             fields.Warning(
                 DiagnosticCodes.InvalidEncoding,
-                $"'{key}' is not valid UTF-8; invalid bytes are shown as replacement characters.",
+                $"'{key}' is not valid UTF-8; raw bytes are shown as hex.",
                 range);
         }
 
-        value = PngFormatting.FormatText(bytes, encoding);
+        value = PngFormatting.FormatText(bytes, encoding) + "\\0";
         fields.Raw(key, value, range);
         return true;
     }

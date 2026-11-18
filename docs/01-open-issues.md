@@ -1,6 +1,6 @@
 # 01 — 剩余限制与已接受风险
 
-> 适用于 v1.0.0。Phase 6/7 的逐项关闭记录已归档到
+> 适用于 v1.0.1。Phase 6/7 的逐项关闭记录已归档到
 > `archive/01-issue-closeout-2026-11-17.md`；完整决策见 `02`。
 
 ---
@@ -77,7 +77,7 @@
 ## 6. 发布验证
 
 - [x] `dotnet build`：0 warning / 0 error
-- [x] `dotnet test`：117 passed
+- [x] `dotnet test`：170 passed
 - [x] `dotnet format --verify-no-changes`
 - [x] 单文件 framework-dependent 发布到 `dist/`，启动验证通过
 - [x] 支持矩阵与 `05-implementation-history.md` 一致

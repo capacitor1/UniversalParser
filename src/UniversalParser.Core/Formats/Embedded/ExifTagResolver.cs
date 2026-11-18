@@ -1,5 +1,7 @@
+using System.Collections.Frozen;
 using System.Globalization;
 using System.Text;
+using UniversalParser.Core.Formatting;
 
 namespace UniversalParser.Core.Formats.Embedded;
 
@@ -14,7 +16,6 @@ internal static class ExifTagResolver
     private const int MaxListItems = 16;
 
     private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
-    private static readonly UTF8Encoding StrictUtf8 = new(false, true);
 
     public static string ResolveTagName(ExifIfdKind kind, ushort tag) => kind switch
     {
@@ -196,7 +197,7 @@ internal static class ExifTagResolver
 
         if (totalCount > values.Length)
         {
-            builder.Append($", … (+{totalCount - values.Length} more)");
+            builder.Append(CultureInfo.InvariantCulture, $", … (+{totalCount - values.Length} more)");
         }
 
         return builder.ToString();
@@ -351,17 +352,8 @@ internal static class ExifTagResolver
         return string.Join(" | ", parts);
     }
 
-    private static string DecodeText(byte[] raw, int offset, int length)
-    {
-        try
-        {
-            return StrictUtf8.GetString(raw, offset, length);
-        }
-        catch (DecoderFallbackException)
-        {
-            return Encoding.Latin1.GetString(raw, offset, length);
-        }
-    }
+    private static string DecodeText(byte[] raw, int offset, int length) =>
+        TextDecoding.DisplayPredicted(raw.AsSpan(offset, length));
 
     public static string ReadAscii(byte[] raw)
     {
@@ -610,10 +602,10 @@ internal static class ExifTagResolver
         return "MakerNote [vendor unknown] (not parsed)";
     }
 
-    private static string Lookup(Dictionary<int, string> map, int value) =>
+    private static string Lookup(IReadOnlyDictionary<int, string> map, int value) =>
         map.TryGetValue(value, out var text) ? text : $"unknown ({value})";
 
-    private static readonly Dictionary<int, string> Compression = new()
+    private static readonly FrozenDictionary<int, string> Compression = new Dictionary<int, string>()
     {
         [1] = "uncompressed",
         [2] = "CCITT 1D",
@@ -625,9 +617,9 @@ internal static class ExifTagResolver
         [8] = "Adobe Deflate",
         [32773] = "PackBits",
         [34712] = "JPEG2000",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> Photometric = new()
+    private static readonly FrozenDictionary<int, string> Photometric = new Dictionary<int, string>()
     {
         [0] = "WhiteIsZero",
         [1] = "BlackIsZero",
@@ -639,9 +631,9 @@ internal static class ExifTagResolver
         [8] = "CIELab",
         [32803] = "CFA (raw)",
         [34892] = "LinearRaw",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> Orientation = new()
+    private static readonly FrozenDictionary<int, string> Orientation = new Dictionary<int, string>()
     {
         [1] = "0° (normal)",
         [2] = "mirror horizontal",
@@ -651,37 +643,37 @@ internal static class ExifTagResolver
         [6] = "rotate 90° CW",
         [7] = "mirror horizontal + rotate 90° CW",
         [8] = "rotate 270° CW",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> Planar = new()
+    private static readonly FrozenDictionary<int, string> Planar = new Dictionary<int, string>()
     {
         [1] = "chunky",
         [2] = "planar",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> ResolutionUnit = new()
+    private static readonly FrozenDictionary<int, string> ResolutionUnit = new Dictionary<int, string>()
     {
         [1] = "none",
         [2] = "inch",
         [3] = "cm",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> YCbCrPositioning = new()
+    private static readonly FrozenDictionary<int, string> YCbCrPositioning = new Dictionary<int, string>()
     {
         [1] = "centered",
         [2] = "co-sited",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> ColorSpace = new()
+    private static readonly FrozenDictionary<int, string> ColorSpace = new Dictionary<int, string>()
     {
         [1] = "sRGB",
         [2] = "Adobe RGB",
         [0xFFFD] = "Wide Gamut RGB",
         [0xFFFE] = "ICC profile",
         [0xFFFF] = "uncalibrated",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> ExposureProgram = new()
+    private static readonly FrozenDictionary<int, string> ExposureProgram = new Dictionary<int, string>()
     {
         [0] = "not defined",
         [1] = "manual",
@@ -693,9 +685,9 @@ internal static class ExifTagResolver
         [7] = "portrait",
         [8] = "landscape",
         [9] = "bulb",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> MeteringMode = new()
+    private static readonly FrozenDictionary<int, string> MeteringMode = new Dictionary<int, string>()
     {
         [0] = "unknown",
         [1] = "average",
@@ -705,9 +697,9 @@ internal static class ExifTagResolver
         [5] = "multi-segment / pattern",
         [6] = "partial",
         [255] = "other",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> LightSource = new()
+    private static readonly FrozenDictionary<int, string> LightSource = new Dictionary<int, string>()
     {
         [0] = "unknown",
         [1] = "daylight",
@@ -730,9 +722,9 @@ internal static class ExifTagResolver
         [23] = "D50",
         [24] = "ISO studio tungsten",
         [255] = "other",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> SensingMethod = new()
+    private static readonly FrozenDictionary<int, string> SensingMethod = new Dictionary<int, string>()
     {
         [1] = "not defined",
         [2] = "one-chip color area",
@@ -741,16 +733,16 @@ internal static class ExifTagResolver
         [5] = "color sequential area",
         [7] = "trilinear",
         [8] = "color sequential linear",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> FileSource = new()
+    private static readonly FrozenDictionary<int, string> FileSource = new Dictionary<int, string>()
     {
         [1] = "film scanner",
         [2] = "reflection print scanner",
         [3] = "digital camera",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> CustomRendered = new()
+    private static readonly FrozenDictionary<int, string> CustomRendered = new Dictionary<int, string>()
     {
         [0] = "normal",
         [1] = "custom",
@@ -758,54 +750,54 @@ internal static class ExifTagResolver
         [3] = "HDR (with original)",
         [6] = "panorama",
         [8] = "portrait HDR",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> ExposureMode = new()
+    private static readonly FrozenDictionary<int, string> ExposureMode = new Dictionary<int, string>()
     {
         [0] = "auto",
         [1] = "manual",
         [2] = "auto bracket",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> WhiteBalance = new()
+    private static readonly FrozenDictionary<int, string> WhiteBalance = new Dictionary<int, string>()
     {
         [0] = "auto",
         [1] = "manual",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> SceneCaptureType = new()
+    private static readonly FrozenDictionary<int, string> SceneCaptureType = new Dictionary<int, string>()
     {
         [0] = "standard",
         [1] = "landscape",
         [2] = "portrait",
         [3] = "night scene",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> GainControl = new()
+    private static readonly FrozenDictionary<int, string> GainControl = new Dictionary<int, string>()
     {
         [0] = "none",
         [1] = "low gain up",
         [2] = "high gain up",
         [3] = "low gain down",
         [4] = "high gain down",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> NormalSoftHard = new()
+    private static readonly FrozenDictionary<int, string> NormalSoftHard = new Dictionary<int, string>()
     {
         [0] = "normal",
         [1] = "low / soft",
         [2] = "high / hard",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> SubjectDistanceRange = new()
+    private static readonly FrozenDictionary<int, string> SubjectDistanceRange = new Dictionary<int, string>()
     {
         [0] = "unknown",
         [1] = "macro",
         [2] = "close",
         [3] = "distant",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> SensitivityType = new()
+    private static readonly FrozenDictionary<int, string> SensitivityType = new Dictionary<int, string>()
     {
         [0] = "unknown",
         [1] = "SOS",
@@ -815,21 +807,21 @@ internal static class ExifTagResolver
         [5] = "SOS+ISO",
         [6] = "REI+ISO",
         [7] = "SOS+REI+ISO",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> GpsAltitudeRef = new()
+    private static readonly FrozenDictionary<int, string> GpsAltitudeRef = new Dictionary<int, string>()
     {
         [0] = "above sea level",
         [1] = "below sea level",
         [2] = "positive (WGS-84 ellipsoid)",
         [3] = "negative (WGS-84 ellipsoid)",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> GpsDifferential = new()
+    private static readonly FrozenDictionary<int, string> GpsDifferential = new Dictionary<int, string>()
     {
         [0] = "no correction",
         [1] = "differential corrected",
-    };
+    }.ToFrozenDictionary();
 
     private static string Hex(byte[] raw)
     {
@@ -843,47 +835,12 @@ internal static class ExifTagResolver
 
     private static string Quote(string text) => "\"" + Escape(text) + "\"";
 
-    private static string Escape(string text)
-    {
-        var builder = new StringBuilder(Math.Min(text.Length, MaxTextChars) + 8);
-        foreach (var character in text)
-        {
-            if (builder.Length >= MaxTextChars)
-            {
-                builder.Append('…');
-                break;
-            }
-
-            switch (character)
-            {
-                case '\r':
-                    builder.Append("\\r");
-                    break;
-                case '\n':
-                    builder.Append("\\n");
-                    break;
-                case '\t':
-                    builder.Append("\\t");
-                    break;
-                case '"':
-                    builder.Append("\\\"");
-                    break;
-                default:
-                    if (char.IsControl(character))
-                    {
-                        builder.Append($"\\x{(int)character:X2}");
-                    }
-                    else
-                    {
-                        builder.Append(character);
-                    }
-
-                    break;
-            }
-        }
-
-        return builder.ToString();
-    }
+    private static string Escape(string text) => TextEscaping.Escape(
+        text,
+        escapeNull: false,
+        escapeAllControls: true,
+        escapeQuote: true,
+        maxOutputLength: MaxTextChars);
 
     private static ushort U16(byte[] data, int offset, bool littleEndian) => littleEndian
         ? (ushort)(data[offset] | (data[offset + 1] << 8))

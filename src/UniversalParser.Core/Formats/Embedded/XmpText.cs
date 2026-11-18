@@ -1,3 +1,4 @@
+using UniversalParser.Core.Binary;
 using UniversalParser.Core.Formatting;
 using UniversalParser.Core.Model;
 using UniversalParser.Core.Parsing;
@@ -18,11 +19,14 @@ internal static class XmpText
         {
             fields.Warning(
                 DiagnosticCodes.InvalidEncoding,
-                "The XMP packet is not valid UTF-8; invalid bytes are shown as replacement characters.",
+                "The XMP packet is not valid UTF-8; raw bytes are shown as hex.",
                 range);
         }
 
-        fields.Raw(prefix + "Text", text, range);
+        fields.Raw(
+            prefix + "Text",
+            invalidEncoding ? TextDecoding.Hex(bytes) : TextEscaping.Escape(text),
+            range);
         fields.Derived($"<{prefix}PacketByteLength>", length, range);
         if (length > bytes.Length)
         {

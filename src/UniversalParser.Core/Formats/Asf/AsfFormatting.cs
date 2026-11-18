@@ -1,6 +1,9 @@
+using System.Collections.Frozen;
 using System.Globalization;
 using System.Text;
 using UniversalParser.Core.Binary;
+using UniversalParser.Core.Formatting;
+using UniversalParser.Core.Model;
 
 namespace UniversalParser.Core.Formats.Asf;
 
@@ -10,14 +13,14 @@ namespace UniversalParser.Core.Formats.Asf;
 /// </summary>
 internal static class AsfFormatting
 {
-    private static readonly Dictionary<ushort, string> CodecTypes = new()
+    private static readonly FrozenDictionary<ushort, string> CodecTypes = new Dictionary<ushort, string>()
     {
         [0x0001] = "video codec",
         [0x0002] = "audio codec",
         [0xFFFF] = "unknown codec",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<ushort, string> ValueTypes = new()
+    private static readonly FrozenDictionary<ushort, string> ValueTypes = new Dictionary<ushort, string>()
     {
         [0x0000] = "Unicode string",
         [0x0001] = "BYTE array",
@@ -26,9 +29,9 @@ internal static class AsfFormatting
         [0x0004] = "QWORD",
         [0x0005] = "WORD",
         [0x0006] = "GUID",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<ushort, string> WaveFormatTags = new()
+    private static readonly FrozenDictionary<ushort, string> WaveFormatTags = new Dictionary<ushort, string>()
     {
         [0x0001] = "WAVE_FORMAT_PCM",
         [0x0002] = "WAVE_FORMAT_ADPCM",
@@ -39,10 +42,9 @@ internal static class AsfFormatting
         [0x0162] = "WAVE_FORMAT_WMAUDIO3",
         [0x0163] = "WAVE_FORMAT_WMAUDIO_LOSSLESS",
         [0x0164] = "WAVE_FORMAT_WMSPEECH",
-    };
+    }.ToFrozenDictionary();
 
-    public static string FormatGuid(Guid guid) =>
-        "{" + guid.ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant() + "}";
+    public static string FormatGuid(Guid guid) => RawIdentifier.FormatGuid(guid);
 
     public static string FormatObjectGuid(Guid guid) =>
         AsfGuids.TryGetObjectName(guid, out var name)
@@ -128,45 +130,10 @@ internal static class AsfFormatting
         }
 
         var evenLength = utf16Bytes.Length - (utf16Bytes.Length & 1);
-        return EscapeText(Encoding.Unicode.GetString(utf16Bytes[..evenLength]));
+        return TextDecoding.Display(utf16Bytes[..evenLength], Encoding.Unicode);
     }
 
-    public static string EscapeText(string value)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-        var builder = new StringBuilder(value.Length);
-        foreach (var character in value)
-        {
-            switch (character)
-            {
-                case '\0':
-                    builder.Append("\\0");
-                    break;
-                case '\r':
-                    builder.Append("\\r");
-                    break;
-                case '\n':
-                    builder.Append("\\n");
-                    break;
-                case '\t':
-                    builder.Append("\\t");
-                    break;
-                default:
-                    if (character < 0x20 || character == 0x7F)
-                    {
-                        builder.Append("\\x").Append(((int)character).ToString("X2", CultureInfo.InvariantCulture));
-                    }
-                    else
-                    {
-                        builder.Append(character);
-                    }
-
-                    break;
-            }
-        }
-
-        return builder.ToString();
-    }
+    public static string EscapeText(string value) => TextEscaping.Escape(value);
 
     public static string FormatFileTime(ulong fileTime)
     {
@@ -193,7 +160,7 @@ internal static class AsfFormatting
     public static string FormatHex(ReadOnlySpan<byte> bytes, int maxBytes) =>
         HexFormatting.Format(bytes, maxBytes);
 
-    private static string FormatValue(ushort value, Dictionary<ushort, string> names) =>
+    private static string FormatValue(ushort value, IReadOnlyDictionary<ushort, string> names) =>
         names.TryGetValue(value, out var name)
             ? string.Create(CultureInfo.InvariantCulture, $"0x{value:X4} ({name})")
             : string.Create(CultureInfo.InvariantCulture, $"0x{value:X4}");

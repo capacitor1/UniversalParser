@@ -51,7 +51,9 @@ internal static class JpegApplicationDispatcher
         var identifier = ReadIdentifier(context, payload);
         if (identifier.Range.Length > 0)
         {
-            fields.Raw("Identifier", JpegFormatting.EscapeText(identifier.Value), identifier.Range);
+            var terminated = identifier.Range.Length > identifier.Value.Length;
+            var value = JpegFormatting.EscapeText(identifier.Value) + (terminated ? "\\0" : string.Empty);
+            fields.Raw("Identifier", value, identifier.Range);
         }
 
         if (!identifier.Complete)

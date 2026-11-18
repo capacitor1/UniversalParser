@@ -268,7 +268,7 @@ internal sealed class IsoBmffDocumentParser
             NodeKind.Unparsed);
     }
 
-    private void AddSynthetic(
+    private static void AddSynthetic(
         ImmutableArray<FormatNode>.Builder children,
         string name,
         long start,

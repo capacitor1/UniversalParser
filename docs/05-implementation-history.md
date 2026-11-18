@@ -18,9 +18,11 @@
 | Phase 6 | 2026-11-16 ~ 17 | BUG 修复与性能：读取窗口、Hex 坐标、零填充保护、EXIF/ID3 完整解析、统计视图、移除深度/节点数/时间限制（D-032）、EBML block 高熵化（D-033）、测试收缩为框架层 |
 | Phase 7 | 2026-11-17 | 导出重做（D-034）、MIDI（D-035）、ICC（D-036）、512 KiB 阈值（D-037）、PSD/PSB（D-038）、Ogg（D-039）、FLAC（D-040）、Blender（D-041）、Protobuf（D-042）、NBT（D-043） |
 | Phase 8 | 2026-11-18 | 文档压缩与归档；无注释 limits 示例；v1.0.0 单文件（framework-dependent）发布到 `dist/` |
+| 维护 | 2026-11-19 | issue#1：统一文本规则、共享编码/转义/有界读取、`FrozenDictionary`、Protobuf 派生预览、诊断与 `RollForward` |
+| 发布 | 2026-11-19 | v1.0.1 本地发布：`dist/UniversalParser_1.0.1.exe` + limits 示例；未做 git 提交 |
 
 Phase 6 起测试范围收缩为框架底层与部分格式回归；不再保留旧格式/GUI 测试。
-当前 `dotnet test` 为 **117 passed**。
+当前 `dotnet test` 为 **170 passed**。
 
 ---
 

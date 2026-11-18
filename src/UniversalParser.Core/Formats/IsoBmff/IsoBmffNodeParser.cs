@@ -22,7 +22,7 @@ internal static class IsoBmffNodeParser
             return null;
         }
 
-        var separator = node.StableId.IndexOf('|');
+        var separator = node.StableId.IndexOf('|', StringComparison.Ordinal);
         if (separator < 0 || separator == node.StableId.Length - 1)
         {
             return null;

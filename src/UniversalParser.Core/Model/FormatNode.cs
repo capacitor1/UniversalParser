@@ -30,10 +30,7 @@ public sealed class FormatNode
             childArray = ImmutableArray<FormatNode>.Empty;
         }
 
-        if (childArray.Any(static child => child is null))
-        {
-            throw new ArgumentException("Children must not contain null entries.", nameof(children));
-        }
+        childArray.ThrowIfAnyNull(nameof(children), "Children must not contain null entries.");
 
         Name = name;
         Kind = kind;

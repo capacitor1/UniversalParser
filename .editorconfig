@@ -54,3 +54,10 @@ dotnet_diagnostic.CA1303.severity = none
 dotnet_diagnostic.CA1819.severity = none
 dotnet_diagnostic.CA1724.severity = none
 dotnet_diagnostic.CA1707.severity = none
+# The parser/GUI boundary deliberately catches Exception and turns it into a diagnostic.
+dotnet_diagnostic.CA1031.severity = none
+# CancellationToken placement follows the existing parser API; reordering is a breaking change.
+dotnet_diagnostic.CA1068.severity = none
+# Concrete-type and constant-array suggestions are micro-optimizations, not correctness rules.
+dotnet_diagnostic.CA1859.severity = none
+dotnet_diagnostic.CA1861.severity = none

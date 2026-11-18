@@ -6,8 +6,8 @@
 
 ## 1. 当前阶段
 
-**v1.0.0 已发布（Phase 8 完成）。** Phase 0–7 已完成，发布物在 `dist/`：
-`UniversalParser.exe`（win-x64、单文件、framework-dependent，依赖 .NET 10 Desktop Runtime）+
+**v1.0.1 已本地发布（Phase 8 + issue#1 维护）。** Phase 0–7 已完成，发布物在 `dist/`：
+`UniversalParser_1.0.1.exe`（win-x64、单文件、framework-dependent，依赖 .NET 10 Desktop Runtime）+
 无注释的 limits 示例。
 
 当前允许：
@@ -122,7 +122,7 @@
 当前保留：source/range/reader、node/field/diagnostic、engine/registry/session、树校验、
 导出/limits，以及 PSD/PSB、Ogg、FLAC、Blender、Protobuf、NBT 与 PNG CRC 回归。
 
-- 当前 `dotnet test`：**117 passed**。
+- 当前 `dotnet test`：**170 passed**。
 - 不恢复旧的按格式解析测试或 GUI 测试；需要时针对当前代码重写。
 - 新测试必须覆盖真实行为，不能为通过而放宽断言。
 - 框架层改动至少运行 `dotnet build` 与 `dotnet test`；GUI/大文件行为用人工验证补充。
@@ -164,9 +164,10 @@ dotnet publish src/UniversalParser.App/UniversalParser.App.csproj `
   -p:PublishSingleFile=true `
   -p:DebugType=None -p:DebugSymbols=false -o dist
 Remove-Item dist/*.xml -Force
+Rename-Item dist/UniversalParser.exe UniversalParser_1.0.1.exe
 Copy-Item universalparser.limits.example.json dist/
 ```
 
-- `dist/` 只保留 `UniversalParser.exe` 与 `universalparser.limits.example.json`。
+- `dist/` 只保留 `UniversalParser_<version>.exe` 与 `universalparser.limits.example.json`。
 - 示例 JSON 不带注释；不打包、不做安装器、不签名。
 - 发布记录写入 `docs/archive/release-<version>.md`，更新 `00` 的状态与最近变更。

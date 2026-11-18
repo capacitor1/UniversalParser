@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Globalization;
 using UniversalParser.Core.Model;
 using UniversalParser.Core.Parsing;
@@ -12,7 +13,7 @@ namespace UniversalParser.Core.Formats.IsoBmff.Boxes;
 /// </summary>
 internal static class ContainerBoxes
 {
-    private static readonly Dictionary<string, string> Titles = new(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> Titles = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["moov"] = "Movie 'moov'",
         ["trak"] = "Track 'trak'",
@@ -75,7 +76,7 @@ internal static class ContainerBoxes
         ["©TIM"] = "(QuickTime)CreationTime '©TIM'",
         ["©TSC"] = "(QuickTime)CreationScale '©TSC'",
         ["©TSZ"] = "(QuickTime)TimeZoneOffset '©TSZ'",
-    };
+    }.ToFrozenDictionary();
 
     public static string Parse(
         ParseContext context,

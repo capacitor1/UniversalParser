@@ -1,4 +1,5 @@
 using System.Text;
+using UniversalParser.Core.Formatting;
 
 namespace UniversalParser.Core.Formats.Embedded;
 
@@ -10,40 +11,44 @@ internal static class Id3String
 {
     public static readonly Encoding EncodingIso88591 = Encoding.Latin1;
 
-    private static readonly Encoding Utf16Le = new UnicodeEncoding(false, false, true);
-    private static readonly Encoding Utf16Be = new UnicodeEncoding(true, false, true);
-    private static readonly Encoding Utf8 = new UTF8Encoding(false, false);
-
-    public static string Decode(ReadOnlySpan<byte> data, Encoding encoding) => encoding.GetString(data);
+    public static string Decode(ReadOnlySpan<byte> data, Encoding encoding) =>
+        TextDecoding.Display(data, encoding);
 
     public static string Decode(ReadOnlySpan<byte> data, byte encoding) => encoding switch
     {
-        0 => EncodingIso88591.GetString(data),
+        0 => Decode(data, EncodingIso88591),
         1 => DecodeUtf16WithBom(data),
-        2 => Utf16Be.GetString(data),
-        3 => Utf8.GetString(data),
-        _ => EncodingIso88591.GetString(data),
+        2 => Decode(data, Encoding.BigEndianUnicode),
+        3 => Decode(data, TextEncodings.Utf8),
+        _ => Decode(data, EncodingIso88591),
     };
 
     public static string[] DecodeTextValues(ReadOnlySpan<byte> data, byte encoding)
     {
-        var value = Decode(data, encoding);
-        if (value.Length == 0)
+        var width = encoding is 1 or 2 ? 2 : 1;
+        var values = new List<string>();
+        var start = 0;
+        for (var index = 0; index + width <= data.Length; index += width)
         {
-            return [];
-        }
-
-        var values = value.Split('\0');
-        var result = new List<string>(values.Length);
-        foreach (var item in values)
-        {
-            if (item.Length != 0)
+            if (data.Slice(index, width).IndexOfAnyExcept((byte)0) >= 0)
             {
-                result.Add(item);
+                continue;
             }
+
+            if (index > start)
+            {
+                values.Add(Decode(data[start..index], encoding));
+            }
+
+            start = index + width;
         }
 
-        return result.ToArray();
+        if (start < data.Length)
+        {
+            values.Add(Decode(data[start..], encoding));
+        }
+
+        return values.Count == 0 ? [] : [.. values];
     }
 
     public static string EncodingName(byte encoding) => encoding switch
@@ -61,15 +66,15 @@ internal static class Id3String
         {
             if (data[0] == 0xFF && data[1] == 0xFE)
             {
-                return Utf16Le.GetString(data[2..]);
+                return Decode(data[2..], Encoding.Unicode);
             }
 
             if (data[0] == 0xFE && data[1] == 0xFF)
             {
-                return Utf16Be.GetString(data[2..]);
+                return Decode(data[2..], Encoding.BigEndianUnicode);
             }
         }
 
-        return Utf16Le.GetString(data);
+        return Decode(data, Encoding.Unicode);
     }
 }

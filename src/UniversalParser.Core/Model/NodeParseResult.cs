@@ -35,15 +35,8 @@ public sealed class NodeParseResult
             diagnosticArray = ImmutableArray<Diagnostic>.Empty;
         }
 
-        if (fieldArray.Any(static field => field is null))
-        {
-            throw new ArgumentException("Fields must not contain null entries.", nameof(fields));
-        }
-
-        if (diagnosticArray.Any(static diagnostic => diagnostic is null))
-        {
-            throw new ArgumentException("Diagnostics must not contain null entries.", nameof(diagnostics));
-        }
+        fieldArray.ThrowIfAnyNull(nameof(fields), "Fields must not contain null entries.");
+        diagnosticArray.ThrowIfAnyNull(nameof(diagnostics), "Diagnostics must not contain null entries.");
 
         Title = title;
         Range = range;

@@ -21,20 +21,14 @@ public sealed class ParseDocument
         ArgumentNullException.ThrowIfNull(parser);
         ArgumentNullException.ThrowIfNull(root);
         ArgumentNullException.ThrowIfNull(limits);
-        if (sourceLength < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(sourceLength));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(sourceLength);
 
         if (diagnostics.IsDefault)
         {
             diagnostics = ImmutableArray<Diagnostic>.Empty;
         }
 
-        if (diagnostics.Any(static diagnostic => diagnostic is null))
-        {
-            throw new ArgumentException("Diagnostics must not contain null entries.", nameof(diagnostics));
-        }
+        diagnostics.ThrowIfAnyNull(nameof(diagnostics), "Diagnostics must not contain null entries.");
 
         if (!new SourceRange(0, sourceLength).Contains(root.Range))
         {

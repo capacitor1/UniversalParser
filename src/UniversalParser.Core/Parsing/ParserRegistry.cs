@@ -37,10 +37,7 @@ public sealed class ParserRegistry
             throw new ArgumentException("At least one parser is required.", nameof(parsers));
         }
 
-        if (list.Any(static parser => parser is null))
-        {
-            throw new ArgumentException("Parsers must not contain null entries.", nameof(parsers));
-        }
+        list.ThrowIfAnyNull(nameof(parsers), "Parsers must not contain null entries.");
 
         var duplicateId = list
             .GroupBy(static parser => parser.Id, StringComparer.Ordinal)

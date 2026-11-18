@@ -607,8 +607,8 @@ internal static class AsfNodeParser
 
     private static void ParseContentDescription(AsfFieldReader reader, FieldList fields)
     {
-        var lengths = new ushort[5];
-        var names = new[] { "Title", "Author", "Copyright", "Description", "Rating" };
+        Span<ushort> lengths = stackalloc ushort[5];
+        ReadOnlySpan<string> names = ["Title", "Author", "Copyright", "Description", "Rating"];
         for (var index = 0; index < lengths.Length; index++)
         {
             if (!reader.TryUInt16($"{names[index]} Length", out lengths[index]))

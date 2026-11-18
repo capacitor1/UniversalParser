@@ -324,8 +324,8 @@ internal sealed class BlendDna
         }
 
         var rest = rawName[pointerDepth..];
-        var bracket = rest.IndexOf('[');
-        if (rest.Contains('(') || bracket == 0)
+        var bracket = rest.IndexOf('[', StringComparison.Ordinal);
+        if (rest.Contains('(', StringComparison.Ordinal) || bracket == 0)
         {
             return (rest.Trim('(', ')', '*'), Math.Max(pointerDepth, 1), []);
         }

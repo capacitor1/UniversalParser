@@ -1,5 +1,4 @@
-using System.Globalization;
-using System.Text;
+using UniversalParser.Core.Model;
 
 namespace UniversalParser.Core.Formats.IsoBmff;
 
@@ -17,40 +16,16 @@ internal static class IsoBmffFourCc
             throw new ArgumentException("A four-character code must be exactly 4 bytes.", nameof(bytes));
         }
 
+        Span<char> characters = stackalloc char[16];
+        var length = 0;
         if (bytes[0] == 0xA9)
         {
-            var builder = new StringBuilder(5);
-            builder.Append('©');
-            for (var index = 1; index < 4; index++)
-            {
-                Append(builder, bytes[index]);
-            }
-
-            return builder.ToString();
+            characters[length++] = '©';
+            bytes = bytes[1..];
         }
 
-        var printable = true;
-        for (var index = 0; index < 4; index++)
-        {
-            if (!IsPrintable(bytes[index]))
-            {
-                printable = false;
-                break;
-            }
-        }
-
-        if (printable)
-        {
-            return Encoding.ASCII.GetString(bytes);
-        }
-
-        var escaped = new StringBuilder(16);
-        foreach (var value in bytes)
-        {
-            Append(escaped, value);
-        }
-
-        return escaped.ToString();
+        length += RawIdentifier.WriteBytes(bytes, characters[length..]);
+        return new string(characters[..length]);
     }
 
     public static bool IsPrintable(byte value) => value is >= 0x20 and <= 0x7E;
@@ -73,15 +48,4 @@ internal static class IsoBmffFourCc
         return true;
     }
 
-    private static void Append(StringBuilder builder, byte value)
-    {
-        if (IsPrintable(value))
-        {
-            builder.Append((char)value);
-        }
-        else
-        {
-            builder.Append("\\x").Append(value.ToString("X2", CultureInfo.InvariantCulture));
-        }
-    }
 }

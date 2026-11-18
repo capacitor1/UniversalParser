@@ -24,6 +24,22 @@ UniversalParser.Tests/   Core 与格式回归测试
 
 ---
 
+## 1.1 共享基础工具
+
+- `Formatting/TextEncodings`：全进程复用的 UTF-8（严格/宽松）、UTF-16LE/BE、Latin-1、
+  Windows-1252 与 ASCII 实例；不再在格式内 `new UTF8Encoding(...)`。
+- `Formatting/TextDecoding`：统一文本显示策略（声明编码、NUL 终止、无编码预测、非法字节 hex）。
+- `Formatting/TextEscaping`：唯一的控制字符/引号转义实现。
+- `Binary/IBoundedReader` + `BoundedReaderExtensions`：各格式 cursor 共用 `Try*` 截断语义与
+  `LastRange` 记录，避免每个新格式重写一套读取工具。
+- `HexFormatting` / `RawIdentifier`：统一十六进制与原始标识符格式化；短字符串使用 `string.Create`
+  精确分配，不经过 `StringBuilder` 中间字符串。
+
+格式内的 `Dictionary` 查找表一次性初始化后一律为 `FrozenDictionary`；需要运行时增删的表只在
+初始化函数内使用普通 `Dictionary`，返回前冻结。
+
+---
+
 ## 2. 核心抽象
 
 ### 2.1 只读随机访问源

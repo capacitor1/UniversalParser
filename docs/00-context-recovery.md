@@ -1,6 +1,6 @@
 # 00 — 上下文恢复摘要
 
-> 上下文丢失后先读这一页。最后更新：2026-11-18（v1.0.0）。
+> 上下文丢失后先读这一页。最后更新：2026-11-19（v1.0.1）。
 
 ---
 
@@ -52,12 +52,13 @@ FLAC  Blender .blend (uncompressed)  Protocol Buffers  Minecraft NBT (uncompress
 
 ---
 
-## 4. 当前状态（v1.0.0）
+## 4. 当前状态（v1.0.1）
 
-- Phase 0–7 完成；Phase 8 文档收尾、归档与发布已完成。
-- 发布物：`dist/UniversalParser.exe`（win-x64，单文件，framework-dependent）+
+- Phase 0–7 完成；Phase 8 文档收尾、归档与发布已完成；2026-11-19 完成 issue#1 代码质量维护并本地发布 v1.0.1。
+- 发布物：`dist/UniversalParser_1.0.1.exe`（win-x64，单文件，framework-dependent）+
   `universalparser.limits.example.json`（无注释示例）。需要安装 .NET 10 Desktop Runtime (x64)。
-- `dotnet build` 0 warning / 0 error；`dotnet test` **117 passed**（仅框架层与部分格式回归）；
+- `dotnet build` 0 warning / 0 error（`AnalysisLevel=latest-all`）；`dotnet test` **170 passed**
+  （仅框架层与部分格式回归）；
   `dotnet format --verify-no-changes` 通过。
 - 测试只用内存构造样本；`fixtures/` 只放临时真实样本，验证后删除。
 - 格式状态：除 PSD/PSB 为**不稳定**外，其余格式均为稳定原始解析。
@@ -77,7 +78,7 @@ FLAC  Blender .blend (uncompressed)  Protocol Buffers  Minecraft NBT (uncompress
 | 6 | `05-implementation-history.md` | 阶段历史、格式覆盖矩阵 |
 | 7 | `07-quality-checklist.md` | 发布与验收检查表 |
 | 8 | `08-format-notes.md` | 各格式规范来源、范围语义、已知坑 |
-| — | `archive/` | 已完成决策全文、格式笔记全文、Phase 6 收尾记录、v1.0.0 发布记录 |
+| — | `archive/` | 已完成决策全文、格式笔记全文、Phase 6 收尾记录、v1.0.0 / v1.0.1 发布记录 |
 
 **冲突处理优先级：**
 
@@ -110,3 +111,5 @@ Phase 8    文档收尾、归档与 v1.0.0 发布（已完成；旧代码不在�
 | 日期 | 变更 |
 |---|---|
 | 2026-11-18 | Phase 8：文档压缩并建立 `docs/archive/`；无注释 limits 示例；v1.0.0 单文件（framework-dependent）发布到 `dist/` |
+| 2026-11-19 | issue#1：统一文本显示/编码策略；共享编码、转义与有界读取；`FrozenDictionary`；Protobuf 派生预览；Windows 保留名；`latest-all` 与 `RollForward` |
+| 2026-11-19 | v1.0.1 本地发布：`dist/UniversalParser_1.0.1.exe` + limits 示例；未做 git 提交 |

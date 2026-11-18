@@ -211,8 +211,8 @@ internal static class RiffNodeParser
         if (name.StartsWith("List '", StringComparison.Ordinal)) return ("LIST", Endian.Little, null);
         if (name.StartsWith("AnimationFrame '", StringComparison.Ordinal)) return ("ANMF", Endian.Little, null);
 
-        var firstQuote = name.IndexOf('\'');
-        var lastQuote = name.LastIndexOf('\'');
+        var firstQuote = name.AsSpan().IndexOf('\'');
+        var lastQuote = name.AsSpan().LastIndexOf('\'');
         return firstQuote >= 0 && lastQuote > firstQuote
             ? (name[(firstQuote + 1)..lastQuote], Endian.Little, null)
             : ("????", Endian.Little, null);

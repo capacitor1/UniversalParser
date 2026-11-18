@@ -76,6 +76,10 @@ public sealed class ParserEngine
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Performance",
+        "CA1822:Mark members as static",
+        Justification = "Kept as an instance API to mirror Parse and preserve the engine contract.")]
     public NodeParseResult ParseNode(
         IRandomAccessSource source,
         ParseDocument document,

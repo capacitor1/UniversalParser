@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Globalization;
 using UniversalParser.Core.Binary;
 using UniversalParser.Core.Formats.Embedded;
@@ -13,36 +14,38 @@ internal delegate void RiffChunkHandler(RiffChunkContext context);
 /// </summary>
 internal static class RiffChunkHandlers
 {
-    private static readonly Dictionary<string, RiffChunkHandler> Handlers = new(StringComparer.Ordinal)
-    {
-        ["fmt "] = Format,
-        ["fact"] = Fact,
-        ["cue "] = CuePoints,
-        ["bext"] = BroadcastExtension,
-        ["ds64"] = Ds64,
-        ["avih"] = AviMainHeader,
-        ["strh"] = AviStreamHeader,
-        ["strf"] = AviStreamFormat,
-        ["idx1"] = AviIndex,
-        ["dmlh"] = RiffOpenDmlParser.ParseHeader,
-        ["indx"] = RiffOpenDmlParser.ParseIndex,
-        ["VP8X"] = Vp8x,
-        ["ANIM"] = WebPAnim,
-        ["anih"] = AniHeader,
-        ["icon"] = AniIcon,
-        ["colh"] = CollectionHeader,
-        ["vers"] = DlsVersion,
-        ["msyn"] = MasterSync,
-        ["insh"] = InstrumentHeader,
-        ["labl"] = Label,
-        ["BKHD"] = BankHeader,
-        ["DIDX"] = DataIndex,
-        ["HIRC"] = HircSection,
-        ["id3 "] = Id3Tag,
-    };
+    private static readonly FrozenDictionary<string, RiffChunkHandler> Handlers = CreateHandlers();
 
-    static RiffChunkHandlers()
+    private static FrozenDictionary<string, RiffChunkHandler> CreateHandlers()
     {
+        var handlers = new Dictionary<string, RiffChunkHandler>(StringComparer.Ordinal)
+        {
+            ["fmt "] = Format,
+            ["fact"] = Fact,
+            ["cue "] = CuePoints,
+            ["bext"] = BroadcastExtension,
+            ["ds64"] = Ds64,
+            ["avih"] = AviMainHeader,
+            ["strh"] = AviStreamHeader,
+            ["strf"] = AviStreamFormat,
+            ["idx1"] = AviIndex,
+            ["dmlh"] = RiffOpenDmlParser.ParseHeader,
+            ["indx"] = RiffOpenDmlParser.ParseIndex,
+            ["VP8X"] = Vp8x,
+            ["ANIM"] = WebPAnim,
+            ["anih"] = AniHeader,
+            ["icon"] = AniIcon,
+            ["colh"] = CollectionHeader,
+            ["vers"] = DlsVersion,
+            ["msyn"] = MasterSync,
+            ["insh"] = InstrumentHeader,
+            ["labl"] = Label,
+            ["BKHD"] = BankHeader,
+            ["DIDX"] = DataIndex,
+            ["HIRC"] = HircSection,
+            ["id3 "] = Id3Tag,
+        };
+
         foreach (var id in new[]
                  {
                      "IARL", "IART", "ICMS", "ICMT", "ICNM", "ICOP", "ICRD", "ICRP", "IDIM", "IDIT",
@@ -50,8 +53,10 @@ internal static class RiffChunkHandlers
                      "IPRD", "IPRO", "IPRT", "ISBJ", "ISFT", "ISHP", "ISMP", "ISRC", "ISRF", "ITCH", "ITRK",
                  })
         {
-            Handlers[id] = InfoText;
+            handlers[id] = InfoText;
         }
+
+        return handlers.ToFrozenDictionary(StringComparer.Ordinal);
     }
 
     public static bool IsKnown(string id) => Handlers.ContainsKey(id) || RiffOpenDmlParser.IsIndexId(id);

@@ -1,3 +1,5 @@
+using System.Buffers.Binary;
+using System.Globalization;
 using System.Text;
 using UniversalParser.Core.Binary;
 using UniversalParser.Core.Formats.Protobuf;
@@ -9,6 +11,79 @@ namespace UniversalParser.Tests.Formats;
 
 public sealed class ProtobufParserTests
 {
+    [Theory]
+    [InlineData(0UL, 0L)]
+    [InlineData(1UL, -1L)]
+    [InlineData(2UL, 1L)]
+    [InlineData(3UL, -2L)]
+    [InlineData(4294967295UL, -2147483648L)]
+    [InlineData(18446744073709551614UL, long.MaxValue)]
+    [InlineData(ulong.MaxValue, long.MinValue)]
+    public void ZigZagPreviewPreservesRawVarint(ulong encoded, long decoded)
+    {
+        using var stream = new MemoryStream();
+        WriteKey(stream, 1, 0);
+        WriteVarint(stream, encoded);
+        using var source = new MemorySource(stream.ToArray());
+        var parser = new ProtobufParser();
+        var root = parser.Parse(new ParseContext(source, ParseLimits.Default));
+        var node = Assert.Single(root.Children);
+        var result = parser.ParseNode(new ParseContext(source, ParseLimits.Default), node);
+
+        Assert.Contains(result.Fields, field => field.Key == "value"
+            && field.Kind == FieldKind.Raw && field.Value == encoded.ToString(CultureInfo.InvariantCulture));
+        var preview = Assert.Single(result.Fields, static field => field.Key == "<ZigZagValue>");
+        Assert.Equal(FieldKind.Derived, preview.Kind);
+        Assert.Equal(decoded.ToString(CultureInfo.InvariantCulture), preview.Value);
+        Assert.Equal(result.Fields.Single(static field => field.Key == "value").Range, preview.Range);
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Theory]
+    [InlineData(0x3FC00000U, "1.5")]
+    [InlineData(0x80000000U, "-0")]
+    [InlineData(0x7F800000U, "Infinity")]
+    [InlineData(0xFF800000U, "-Infinity")]
+    [InlineData(0x7FC00000U, "NaN")]
+    public void Fixed32PreviewInterpretsIeee754Bits(uint bits, string expected)
+    {
+        Span<byte> bytes = stackalloc byte[5];
+        bytes[0] = 0x0D;
+        BinaryPrimitives.WriteUInt32LittleEndian(bytes[1..], bits);
+        using var source = new MemorySource(bytes.ToArray());
+        AssertFixedPreview(source, "<FloatValue>", expected, $"0x{bits:X8}");
+    }
+
+    [Theory]
+    [InlineData(0x3FF8000000000000UL, "1.5")]
+    [InlineData(0x8000000000000000UL, "-0")]
+    [InlineData(0x7FF0000000000000UL, "Infinity")]
+    [InlineData(0xFFF0000000000000UL, "-Infinity")]
+    [InlineData(0x7FF8000000000000UL, "NaN")]
+    public void Fixed64PreviewInterpretsIeee754Bits(ulong bits, string expected)
+    {
+        Span<byte> bytes = stackalloc byte[9];
+        bytes[0] = 0x09;
+        BinaryPrimitives.WriteUInt64LittleEndian(bytes[1..], bits);
+        using var source = new MemorySource(bytes.ToArray());
+        AssertFixedPreview(source, "<DoubleValue>", expected, $"0x{bits:X16}");
+    }
+
+    private static void AssertFixedPreview(MemorySource source, string key, string expected, string rawValue)
+    {
+        var parser = new ProtobufParser();
+        var root = parser.Parse(new ParseContext(source, ParseLimits.Default));
+        var result = parser.ParseNode(new ParseContext(source, ParseLimits.Default), Assert.Single(root.Children));
+        var raw = Assert.Single(result.Fields, static field => field.Key == "value");
+        Assert.Equal(rawValue, raw.Value);
+        Assert.Equal(FieldKind.Raw, raw.Kind);
+        var preview = Assert.Single(result.Fields, field => field.Key == key);
+        Assert.Equal(expected, preview.Value);
+        Assert.Equal(FieldKind.Derived, preview.Kind);
+        Assert.Equal(raw.Range, preview.Range);
+        Assert.Empty(result.Diagnostics);
+    }
+
     [Fact]
     public void RawFieldsAndNestedMessageAreParsed()
     {

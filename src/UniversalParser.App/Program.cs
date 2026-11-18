@@ -7,6 +7,7 @@ internal static class Program
     {
         ApplicationConfiguration.Initialize();
         var initialPath = args.Length > 0 ? args[0] : null;
-        Application.Run(new MainForm(initialPath));
+        using var form = new MainForm(initialPath);
+        Application.Run(form);
     }
 }

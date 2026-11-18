@@ -754,7 +754,7 @@ internal static class PsdNodeParser
 
         var limit = context.Limits.MaxStringBytes & ~1;
         var bytes = reader.ReadPrefix(byteLength, limit, out var range);
-        fields.Raw(key, TextEscaping.Escape(Encoding.BigEndianUnicode.GetString(bytes)), range);
+        fields.Raw(key, TextDecoding.Display(bytes, Encoding.BigEndianUnicode), range);
         if (bytes.Length < byteLength)
         {
             fields.Warning(DiagnosticCodes.LimitString, $"'{key}' is shown as a prefix.", range);

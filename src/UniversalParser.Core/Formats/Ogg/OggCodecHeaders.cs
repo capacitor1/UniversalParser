@@ -1,7 +1,7 @@
 using System.Globalization;
-using System.Text;
 using UniversalParser.Core.Binary;
 using UniversalParser.Core.Formats.Embedded;
+using UniversalParser.Core.Formatting;
 using UniversalParser.Core.Model;
 using UniversalParser.Core.Parsing;
 
@@ -683,19 +683,7 @@ internal static class OggCodecHeaders
         }
 
         var range = new SourceRange(reader.Position - count, count);
-        var text = Encoding.UTF8.GetString(buffer);
-        var lines = text.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n');
-        var index = 0;
-        foreach (var line in lines)
-        {
-            if (string.IsNullOrEmpty(line))
-            {
-                continue;
-            }
-
-            fields.Raw($"{prefix}Message header[{index}]", EscapeText(line), range);
-            index++;
-        }
+        fields.Raw($"{prefix}Message header", TextEscaping(buffer), range);
 
         if (length > maxStringBytes)
         {
@@ -736,14 +724,8 @@ internal static class OggCodecHeaders
             ? $"{exponent.ToString(CultureInfo.InvariantCulture)} ({1 << exponent} samples)"
             : exponent.ToString(CultureInfo.InvariantCulture);
 
-    private static string TextEscaping(ReadOnlySpan<byte> bytes)
-    {
-        var text = Encoding.UTF8.GetString(bytes).TrimEnd('\0');
-        return UniversalParser.Core.Formatting.TextEscaping.Escape(text);
-    }
-
-    private static string EscapeText(string text) =>
-        UniversalParser.Core.Formatting.TextEscaping.Escape(text);
+    private static string TextEscaping(ReadOnlySpan<byte> bytes) =>
+        UniversalParser.Core.Formatting.TextDecoding.Display(bytes, TextEncodings.Utf8);
 
     private static void Truncated(FieldList fields, BlockReader reader, string structure) =>
         fields.Warning(

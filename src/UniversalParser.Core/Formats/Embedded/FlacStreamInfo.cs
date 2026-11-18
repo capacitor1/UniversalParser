@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using UniversalParser.Core.Binary;
 using UniversalParser.Core.Model;
 using UniversalParser.Core.Parsing;
 

@@ -1,4 +1,4 @@
-using System.Text;
+using System.Globalization;
 
 namespace UniversalParser.Core.Binary;
 
@@ -7,24 +7,40 @@ internal static class HexFormatting
 {
     public static string Format(ReadOnlySpan<byte> bytes, int maxBytes)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(maxBytes);
         var count = Math.Min(bytes.Length, maxBytes);
-        var text = Convert.ToHexString(bytes[..count]);
-        var builder = new StringBuilder(text.Length + text.Length / 2);
-        for (var index = 0; index < text.Length; index += 2)
+        var truncated = bytes.Length > count;
+        var length = (long)count * 3 - (count > 0 ? 1 : 0) + (truncated ? 4 : 0);
+        if (length > Array.MaxLength)
         {
-            if (index > 0)
+            throw new ArgumentException("The formatted string would exceed the maximum length.", nameof(bytes));
+        }
+
+        return string.Create((int)length, bytes[..count], static (destination, source) =>
             {
-                builder.Append(' ');
-            }
+                var offset = 0;
+                foreach (var value in source)
+                {
+                    if (offset > 0)
+                    {
+                        destination[offset++] = ' ';
+                    }
 
-            builder.Append(text, index, 2);
-        }
+                    value.TryFormat(destination[offset..], out _, "X2", CultureInfo.InvariantCulture);
+                    offset += 2;
+                }
 
-        if (bytes.Length > count)
-        {
-            builder.Append(" ...");
-        }
+                if (offset < destination.Length)
+                {
+                    " ...".AsSpan().CopyTo(destination[offset..]);
+                }
+            });
+    }
 
-        return builder.ToString();
+    internal static void WriteEscapedByte(byte value, Span<char> destination)
+    {
+        destination[0] = '\\';
+        destination[1] = 'x';
+        value.TryFormat(destination[2..], out _, "X2", CultureInfo.InvariantCulture);
     }
 }

@@ -10,7 +10,7 @@ namespace UniversalParser.Core.Formats.IsoBmff;
 /// short read into a TRUNCATED_PAYLOAD diagnostic instead of an exception, so a damaged box still
 /// produces the fields read so far.
 /// </summary>
-internal sealed class IsoBmffBoxReader
+internal sealed class IsoBmffBoxReader : IBoundedReader
 {
     private readonly SourceReader _reader;
     private readonly FieldList _fields;
@@ -28,7 +28,19 @@ internal sealed class IsoBmffBoxReader
     public long Position => _reader.Position;
     public long Remaining => _reader.Remaining;
     public SourceRange CurrentRange => new(_reader.Position, _reader.Remaining);
-    public SourceRange LastRange { get; private set; } = SourceRange.Empty;
+    public SourceRange LastRange { get; set; } = SourceRange.Empty;
+
+    public byte ReadByteCore() => _reader.ReadByte();
+
+    public ushort ReadUInt16Core(Endian endian) => _reader.ReadUInt16(endian);
+
+    public uint ReadUInt32Core(Endian endian) => _reader.ReadUInt32(endian);
+
+    public ulong ReadUInt64Core(Endian endian) => _reader.ReadUInt64(endian);
+
+    public void ReadExactlyCore(Span<byte> destination) => _reader.ReadExactly(destination);
+
+    public void SkipCore(long count) => _reader.Skip(count);
 
     public bool TryByte(string key, out byte value)
     {
@@ -164,19 +176,6 @@ internal sealed class IsoBmffBoxReader
         _reader.ReadExactly(destination);
         LastRange = new SourceRange(start, destination.Length);
         _fields.Raw(key, IsoBmffFormatting.Hex(destination), LastRange);
-        return true;
-    }
-
-    public bool TryReadBytes(Span<byte> destination)
-    {
-        var start = _reader.Position;
-        if (_reader.Remaining < destination.Length)
-        {
-            return false;
-        }
-
-        _reader.ReadExactly(destination);
-        LastRange = new SourceRange(start, destination.Length);
         return true;
     }
 
@@ -324,26 +323,6 @@ internal sealed class IsoBmffBoxReader
         LastRange = new SourceRange(start, byteCount);
         _fields.Raw(key, value, LastRange);
         return value;
-    }
-
-    public byte[] ReadRemainingPrefix(int maxBytes, out long totalLength, out SourceRange range)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegative(maxBytes);
-        var start = _reader.Position;
-        totalLength = _reader.Remaining;
-        range = new SourceRange(start, totalLength);
-        var count = (int)Math.Min(totalLength, maxBytes);
-        if (count == 0)
-        {
-            _reader.Skip(totalLength);
-            return [];
-        }
-
-        var bytes = new byte[count];
-        _reader.ReadExactly(bytes);
-        _reader.Skip(totalLength - count);
-        LastRange = range;
-        return bytes;
     }
 
     /// <summary>

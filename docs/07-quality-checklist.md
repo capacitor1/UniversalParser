@@ -1,6 +1,6 @@
 # 07 — 质量检查与发布清单
 
-> 适用于 v1.0.0。剩余限制见 `01-open-issues.md`；格式细节见 `08-format-notes.md`。
+> 适用于 v1.0.1。剩余限制见 `01-open-issues.md`；格式细节见 `08-format-notes.md`。
 
 ---
 
@@ -86,13 +86,15 @@
 ## 6. 发布
 
 - [x] `dotnet build UniversalParser.sln`：0 warning / 0 error
-- [x] `dotnet test UniversalParser.sln`：117 passed
+- [x] `dotnet test UniversalParser.sln`：170 passed
+- [x] `AnalysisLevel=latest-all` 下 0 warning；仅对契约/框架所有权的规则做有理由抑制
+- [x] App 启用 `RollForward=LatestMajor`
 - [x] `dotnet format --verify-no-changes`
 - [x] `docs/01-open-issues.md` 无阻塞项；P1 全部关闭/接受
 - [x] 支持矩阵与 `05-implementation-history.md` 一致
 - [x] 文档无过期链接、无过期测试数；历史内容已归档
 - [x] `universalparser.limits.example.json` 为无注释 JSON，并随 `dist/` 发布
-- [x] `dist/UniversalParser.exe` 单文件 framework-dependent（win-x64），启动验证通过
+- [x] `dist/UniversalParser_<version>.exe` 单文件 framework-dependent（win-x64）
 - [x] 发布目录不含 PDB/XML 文档等额外文件
 
 发布命令：
@@ -104,4 +106,5 @@ dotnet publish src/UniversalParser.App/UniversalParser.App.csproj `
   -p:DebugType=None -p:DebugSymbols=false -o dist
 ```
 
-发布后删除 `dist/*.xml`，再复制 limits 示例。
+发布后删除 `dist/*.xml`，把 `UniversalParser.exe` 重命名为 `UniversalParser_<version>.exe`，
+再复制 limits 示例。

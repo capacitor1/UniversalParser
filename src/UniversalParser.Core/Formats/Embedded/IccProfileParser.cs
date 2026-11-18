@@ -20,7 +20,6 @@ internal static class IccProfileParser
     private const int TagTableOffset = 132;
     private const int TagEntryLength = 12;
     private const int TagTypeHeaderLength = 8;
-    private const int MaxClutChannels = 16;
 
     public static void Parse(
         byte[] profile,

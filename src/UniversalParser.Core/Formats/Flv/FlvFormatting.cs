@@ -1,6 +1,9 @@
+using System.Collections.Frozen;
 using System.Globalization;
 using System.Text;
 using UniversalParser.Core.Binary;
+using UniversalParser.Core.Formatting;
+using UniversalParser.Core.Model;
 
 namespace UniversalParser.Core.Formats.Flv;
 
@@ -10,14 +13,14 @@ namespace UniversalParser.Core.Formats.Flv;
 /// </summary>
 internal static class FlvFormatting
 {
-    private static readonly Dictionary<int, string> TagTypes = new()
+    private static readonly FrozenDictionary<int, string> TagTypes = new Dictionary<int, string>()
     {
         [8] = "audio",
         [9] = "video",
         [18] = "script",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> CodecIds = new()
+    private static readonly FrozenDictionary<int, string> CodecIds = new Dictionary<int, string>()
     {
         [1] = "JPEG",
         [2] = "Sorenson H.263",
@@ -29,9 +32,9 @@ internal static class FlvFormatting
         [8] = "Real H.263",
         [9] = "MPEG-4",
         [12] = "HEVC",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> SoundFormats = new()
+    private static readonly FrozenDictionary<int, string> SoundFormats = new Dictionary<int, string>()
     {
         [0] = "Linear PCM, platform-endian",
         [1] = "ADPCM",
@@ -46,46 +49,46 @@ internal static class FlvFormatting
         [11] = "Speex",
         [14] = "MP3 8 kHz",
         [15] = "Device-specific sound",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> SoundRates = new()
+    private static readonly FrozenDictionary<int, string> SoundRates = new Dictionary<int, string>()
     {
         [0] = "5.5 kHz",
         [1] = "11 kHz",
         [2] = "22 kHz",
         [3] = "44 kHz",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> FrameTypes = new()
+    private static readonly FrozenDictionary<int, string> FrameTypes = new Dictionary<int, string>()
     {
         [1] = "key frame",
         [2] = "inter frame",
         [3] = "disposable inter frame",
         [4] = "generated key frame",
         [5] = "video info/command frame",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> AvcPacketTypes = new()
+    private static readonly FrozenDictionary<int, string> AvcPacketTypes = new Dictionary<int, string>()
     {
         [0] = "AVC sequence header",
         [1] = "AVC NALU",
         [2] = "AVC end of sequence",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> HevcPacketTypes = new()
+    private static readonly FrozenDictionary<int, string> HevcPacketTypes = new Dictionary<int, string>()
     {
         [0] = "HEVC sequence header",
         [1] = "HEVC NALU",
         [2] = "HEVC end of sequence",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> AacPacketTypes = new()
+    private static readonly FrozenDictionary<int, string> AacPacketTypes = new Dictionary<int, string>()
     {
         [0] = "AAC sequence header",
         [1] = "AAC raw",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> VideoPacketTypes = new()
+    private static readonly FrozenDictionary<int, string> VideoPacketTypes = new Dictionary<int, string>()
     {
         [0] = "SequenceStart",
         [1] = "CodedFrames",
@@ -95,22 +98,22 @@ internal static class FlvFormatting
         [5] = "MPEG2TSSequenceStart",
         [6] = "Multitrack",
         [7] = "ModEx",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> VideoCommands = new()
+    private static readonly FrozenDictionary<int, string> VideoCommands = new Dictionary<int, string>()
     {
         [0] = "StartSeek",
         [1] = "EndSeek",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> MultitrackTypes = new()
+    private static readonly FrozenDictionary<int, string> MultitrackTypes = new Dictionary<int, string>()
     {
         [0] = "OneTrack",
         [1] = "ManyTracks",
         [2] = "ManyTracksManyCodecs",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<string, string> FourCcNames = new(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> FourCcNames = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["avc1"] = "AVC",
         ["hvc1"] = "HEVC",
@@ -119,7 +122,7 @@ internal static class FlvFormatting
         ["vp08"] = "VP8",
         ["vp09"] = "VP9",
         ["vvc1"] = "VVC",
-    };
+    }.ToFrozenDictionary();
 
     public static string FormatTagType(int value) => FormatValue(value, TagTypes);
 
@@ -150,20 +153,7 @@ internal static class FlvFormatting
     public static string FormatFourCc(ReadOnlySpan<byte> bytes)
     {
         var text = DecodeFourCc(bytes);
-        var builder = new StringBuilder(text.Length);
-        foreach (var value in bytes)
-        {
-            if (value is >= 0x20 and <= 0x7E)
-            {
-                builder.Append((char)value);
-            }
-            else
-            {
-                builder.Append("\\x").Append(value.ToString("X2", CultureInfo.InvariantCulture));
-            }
-        }
-
-        var formatted = builder.ToString();
+        var formatted = RawIdentifier.FormatBytes(bytes);
         return FourCcNames.TryGetValue(text, out var name) ? $"{formatted} ({name})" : formatted;
     }
 
@@ -186,25 +176,7 @@ internal static class FlvFormatting
 
     public static string DecodeFourCc(ReadOnlySpan<byte> bytes) => Encoding.Latin1.GetString(bytes);
 
-    public static string FormatNumber(double value)
-    {
-        if (double.IsNaN(value))
-        {
-            return "NaN";
-        }
-
-        if (double.IsPositiveInfinity(value))
-        {
-            return "Infinity";
-        }
-
-        if (double.IsNegativeInfinity(value))
-        {
-            return "-Infinity";
-        }
-
-        return value.ToString("R", CultureInfo.InvariantCulture);
-    }
+    public static string FormatNumber(double value) => ValueFormat.FloatingPoint(value);
 
     public static string FormatDateMilliseconds(double value)
     {
@@ -232,39 +204,7 @@ internal static class FlvFormatting
         return signed.ToString(CultureInfo.InvariantCulture);
     }
 
-    public static string EscapeText(string value)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-        var builder = new StringBuilder(value.Length);
-        foreach (var character in value)
-        {
-            switch (character)
-            {
-                case '\r':
-                    builder.Append("\\r");
-                    break;
-                case '\n':
-                    builder.Append("\\n");
-                    break;
-                case '\t':
-                    builder.Append("\\t");
-                    break;
-                default:
-                    if (character < 0x20 || character == 0x7F)
-                    {
-                        builder.Append("\\x").Append(((int)character).ToString("X2", CultureInfo.InvariantCulture));
-                    }
-                    else
-                    {
-                        builder.Append(character);
-                    }
-
-                    break;
-            }
-        }
-
-        return builder.ToString();
-    }
+    public static string EscapeText(string value) => TextEscaping.Escape(value, escapeNull: false);
 
     public static string SanitizeKey(string key)
     {
@@ -280,8 +220,6 @@ internal static class FlvFormatting
 
     public static string FormatHex(ReadOnlySpan<byte> bytes, int maxBytes) => HexFormatting.Format(bytes, maxBytes);
 
-    private static string FormatValue(int value, Dictionary<int, string> names) =>
-        names.TryGetValue(value, out var name)
-            ? string.Create(CultureInfo.InvariantCulture, $"{value} ({name})")
-            : value.ToString(CultureInfo.InvariantCulture);
+    private static string FormatValue(int value, IReadOnlyDictionary<int, string> names) =>
+        ValueFormat.Enum(value, names);
 }

@@ -128,7 +128,7 @@ internal sealed class FbxDocumentParser : IDisposable
         return CreateRoot(fileRange, children.ToImmutable());
     }
 
-    private FormatNode BuildFooter(SourceRange footerRange, FbxFooterLayout layout)
+    private static FormatNode BuildFooter(SourceRange footerRange, FbxFooterLayout layout)
     {
         var children = ImmutableArray.CreateBuilder<FormatNode>();
         AddFooterChild(children, "Null Record", NodeKind.Padding, layout.NullRecord, "fbx:footer:null");
@@ -148,7 +148,7 @@ internal sealed class FbxDocumentParser : IDisposable
             "fbx:footer");
     }
 
-    private void AddFooterChild(
+    private static void AddFooterChild(
         ImmutableArray<FormatNode>.Builder children,
         string name,
         NodeKind kind,

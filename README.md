@@ -2,8 +2,8 @@
 
 [![.NET](https://img.shields.io/badge/.NET-10-512BD4)](https://dotnet.microsoft.com/)
 [![Platform](https://img.shields.io/badge/platform-Windows%20x64-0078D6)](#系统要求)
-[![Version](https://img.shields.io/badge/version-1.0.0-success)](#版本)
-[![Tests](https://img.shields.io/badge/tests-117%20passed-brightgreen)](#构建与测试)
+[![Version](https://img.shields.io/badge/version-1.0.1-success)](#版本)
+[![Tests](https://img.shields.io/badge/tests-170%20passed-brightgreen)](#构建与测试)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 只读的二进制结构解析工作台：把容器/分块型文件切成结构树，展示字段、Hex 与解析报告。
@@ -67,17 +67,18 @@ tree, inspect fields and hex, and export a diagnostic report.*
 - [.NET 10 Desktop Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/10.0)
 
 发布物为 **framework-dependent 单文件**，不包含运行时，需先安装上述运行时。
+程序启用 `RollForward=LatestMajor`，安装更新主版本的 .NET 运行时时仍可启动。
 
 ## 快速开始
 
 1. 从 [Releases](../../releases) 下载两个附件，放在同一目录：
 
    ```text
-   UniversalParser_1.0.0.exe                 Windows x64，单文件，framework-dependent
+   UniversalParser_1.0.1.exe                 Windows x64，单文件，framework-dependent
    universalparser.limits.example.json       可选限制配置示例
    ```
 
-2. 双击 `UniversalParser_1.0.0.exe` 启动。
+2. 双击 `UniversalParser_1.0.1.exe` 启动。
 3. 打开文件后，在左侧结构树中选择节点，右侧查看字段与 Hex。
 
 ## 配置
@@ -108,7 +109,8 @@ dotnet test UniversalParser.sln
 dotnet format UniversalParser.sln --verify-no-changes
 ```
 
-当前状态：`dotnet build` 0 warning / 0 error，`dotnet test` **117 passed**。
+当前状态：`dotnet build` 0 warning / 0 error（含 `AnalysisLevel=latest-all`），
+`dotnet test` **170 passed**。
 
 发布：
 
@@ -187,6 +189,7 @@ fixtures/                    临时真实样本（验证后删除，自动化测
 | 版本 | 日期 | 内容 |
 |---|---|---|
 | 1.0.0 | 2026-11-18 | Phase 8 收尾；文档压缩/归档；单文件 framework-dependent 发布到 `dist/` |
+| 1.0.1 | 2026-11-19 | issue#1 代码质量维护：文本规则统一、共享工具、`FrozenDictionary`、Protobuf 预览；本地重新发布 |
 
 ## 许可证
 

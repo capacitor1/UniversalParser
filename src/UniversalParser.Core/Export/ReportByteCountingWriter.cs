@@ -6,6 +6,10 @@ namespace UniversalParser.Core.Export;
 /// Pass-through writer that reports how many UTF-8 bytes the report body occupies. It deliberately
 /// has no budget: only the hex section is windowed, and the field section must never be truncated.
 /// </summary>
+[System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Reliability",
+    "CA2213:Disposable fields should be disposed",
+    Justification = "The wrapper observes but does not own the caller's writer.")]
 internal sealed class ReportByteCountingWriter : TextWriter
 {
     private readonly TextWriter _inner;
@@ -45,4 +49,19 @@ internal sealed class ReportByteCountingWriter : TextWriter
     }
 
     public override void Flush() => _inner.Flush();
+
+    protected override void Dispose(bool disposing)
+    {
+        try
+        {
+            if (disposing)
+            {
+                _inner.Flush();
+            }
+        }
+        finally
+        {
+            base.Dispose(disposing);
+        }
+    }
 }

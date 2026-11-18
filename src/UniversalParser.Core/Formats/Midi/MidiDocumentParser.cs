@@ -169,7 +169,7 @@ internal sealed class MidiDocumentParser
         return CreateRoot(fileRange, children.ToImmutable());
     }
 
-    private FormatNode BuildHeader(long start, long dataStart, long end)
+    private static FormatNode BuildHeader(long start, long dataStart, long end)
     {
         var dataRange = new SourceRange(dataStart, end - dataStart);
         return new FormatNode(

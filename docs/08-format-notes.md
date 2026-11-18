@@ -13,6 +13,8 @@
 - 诊断只针对格式本身：截断、长度、签名、块内枚举、块内 CRC；不检查跨块/跨字段语义（D-028）。
 - 节点范围默认覆盖 padding；例外必须在本文件记录。
 - 块身份值（4CC/GUID/marker/节点名）已在标题中，字段区不重复。
+- 文本统一按 `03-style-guide.md` §7.1：保留 `\0`/换行/控制转义；有编码标识按标识解码，
+  非法字节显示 `\xNN`；无标识先 UTF-8 再 Windows-1252。4CC/签名字节身份仍用 Latin-1。
 - 根节点显示格式全称（D-014）；Hex 只按当前节点范围渲染，不读下一个块。
 - 不设解析时间/深度/节点数限制（D-032）；报告无总预算，Hex 固定首尾 128 KiB（D-034）。
 
@@ -93,7 +95,8 @@ trep/gmhd`。容器前缀按规范跳过：`meta` 区分 ISO FullBox 与 Apple �
 - FMOD `FEV ` bank 的 `FMT `/`BNKI` 等只登记名称，无字段 handler；真正未知 chunk 整块 `Unparsed`。
 
 **已知坑**：嵌套 LIST 的 pad；RF64 64 位 size；顶层 trailing；短 chunk 的 Hex 最后一行
-不得读入下一个 chunk；`ckID` 不在字段区重复。
+不得读入下一个 chunk；`ckID` 不在字段区重复。INFO/bext 等 legacy 文本无编码标识：
+先严格 UTF-8，再 Windows-1252（不是 Latin-1）；NUL 终止符显示为 `\0`。
 
 ---
 
@@ -524,7 +527,9 @@ SDNA 段有 4 字节对齐填充。
 （`varint/fixed64/length-delimited/start-group/fixed32`）；标题
 `VarintField '1'`/`LengthDelimitedField '2'`/`GroupField '6'` 等；原始键
 `field_number/wire_type/key/value/length/end_group_field_number`；派生
-`<PayloadKind>/<Text>/<HexPreview>/<FieldCount>/<PayloadLength>/<UnsignedValue>/<SignedValue>`。
+`<PayloadKind>/<Text>/<HexPreview>/<FieldCount>/<PayloadLength>/<UnsignedValue>/<SignedValue>`；
+varint 另给 `<ZigZagValue>`，fixed64 给 `<DoubleValue>`，fixed32 给 `<FloatValue>`。
+这些只是无 schema 下的替代解释，不改变原始 `value` 与 wire type。
 
 **length-delimited 分类**：空 → `empty`；完整合法可打印 UTF-8（允许 tab/CR/LF，不允许 NUL/
 其他控制）→ `string`；完整 payload 能严格按 wire format 解析 → `message`（递归建树）；
@@ -601,7 +606,8 @@ String = u16 长度 + UTF-8；List = u8 元素类型 + i32 元素数 + 无名称
 **ID3v2**：入口 RIFF `id3 `（WAVE）；支持 v2.2/2.3/2.4、tag header/extended header/footer/
 frames（`frame[n].`）；synchsafe 尺寸、unsynchronisation、帧编码；压缩/加密帧只保留 payload；
 v2.4 优先按 synchsafe，合法帧边界时才接受普通 BE；CHAP/CTOC 子帧复用帧循环；
-APIC 只标注类型与长度；文本保留声明编码。
+APIC 只标注类型与长度。文本按帧的 encoding 字节解码；非法序列显示 `\xNN`，
+换行/控制字符按 §7.1 转义，不静默丢弃。
 
 **EXIF**：入口 JPEG APP1（跳过 `Exif\0\0`）、PNG `eXIf`（直接 TIFF header）、
 PSD 1058/1059（数据以 TIFF header 开始时）；结构 TIFF header → IFD0 → IFD1 链、

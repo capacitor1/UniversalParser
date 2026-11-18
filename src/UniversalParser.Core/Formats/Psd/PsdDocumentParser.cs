@@ -573,7 +573,7 @@ internal sealed class PsdDocumentParser
             stableId: string.Create(CultureInfo.InvariantCulture, $"psd:id:{position}")));
     }
 
-    private void AddLeaf(
+    private static void AddLeaf(
         ImmutableArray<FormatNode>.Builder children,
         string name,
         long start,

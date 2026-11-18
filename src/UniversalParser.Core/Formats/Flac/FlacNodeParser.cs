@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text;
 using UniversalParser.Core.Binary;
 using UniversalParser.Core.Formats.Embedded;
 using UniversalParser.Core.Formatting;
@@ -439,8 +438,14 @@ internal static class FlacNodeParser
 
     private static string EscapeAscii(ReadOnlySpan<byte> value)
     {
-        var text = Encoding.ASCII.GetString(value).TrimEnd('\0');
-        return TextEscaping.Escape(text);
+        // The CUESHEET catalog/ISRC fields are fixed-width and NUL-padded, not NUL-terminated.
+        var end = value.Length;
+        while (end > 0 && value[end - 1] == 0)
+        {
+            end--;
+        }
+
+        return TextDecoding.Display(value[..end], TextEncodings.Ascii);
     }
 
     private static NodeParseResult Result(FormatNode node, FieldList fields, string? title = null) =>

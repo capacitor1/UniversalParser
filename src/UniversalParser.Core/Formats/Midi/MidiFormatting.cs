@@ -1,5 +1,7 @@
+using System.Collections.Frozen;
 using System.Globalization;
 using System.Text;
+using UniversalParser.Core.Formatting;
 
 namespace UniversalParser.Core.Formats.Midi;
 
@@ -14,7 +16,7 @@ internal static class MidiFormatting
         "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
     ];
 
-    private static readonly Dictionary<int, string> ControllerNames = new()
+    private static readonly FrozenDictionary<int, string> ControllerNames = new Dictionary<int, string>()
     {
         [0] = "Bank Select MSB",
         [1] = "Modulation Wheel",
@@ -52,7 +54,7 @@ internal static class MidiFormatting
         [125] = "Omni Mode On",
         [126] = "Mono Mode On",
         [127] = "Poly Mode On",
-    };
+    }.ToFrozenDictionary();
 
     public static string FormatHeaderFormat(ushort format) => format switch
     {
@@ -229,46 +231,7 @@ internal static class MidiFormatting
         return $"{accidentals}, {tonality}";
     }
 
-    public static string FormatText(ReadOnlySpan<byte> bytes, Encoding encoding)
-    {
-        ArgumentNullException.ThrowIfNull(encoding);
-        return EscapeText(encoding.GetString(bytes));
-    }
+    public static string FormatText(ReadOnlySpan<byte> bytes, Encoding encoding) => TextDecoding.Escaped(bytes, encoding);
 
-    public static string EscapeText(string value)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-        var builder = new StringBuilder(value.Length);
-        foreach (var character in value)
-        {
-            switch (character)
-            {
-                case '\0':
-                    builder.Append("\\0");
-                    break;
-                case '\r':
-                    builder.Append("\\r");
-                    break;
-                case '\n':
-                    builder.Append("\\n");
-                    break;
-                case '\t':
-                    builder.Append("\\t");
-                    break;
-                default:
-                    if (character < 0x20 || character == 0x7F)
-                    {
-                        builder.Append("\\x").Append(((int)character).ToString("X2", CultureInfo.InvariantCulture));
-                    }
-                    else
-                    {
-                        builder.Append(character);
-                    }
-
-                    break;
-            }
-        }
-
-        return builder.ToString();
-    }
+    public static string EscapeText(string value) => TextEscaping.Escape(value);
 }

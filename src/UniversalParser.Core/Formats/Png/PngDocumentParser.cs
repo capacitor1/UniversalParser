@@ -207,7 +207,7 @@ internal sealed class PngDocumentParser
             && signature.SequenceEqual(PngConstants.Signature);
     }
 
-    private void AddChunk(
+    private static void AddChunk(
         ImmutableArray<FormatNode>.Builder children,
         string name,
         NodeKind kind,

@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Globalization;
 using UniversalParser.Core.Binary;
 using UniversalParser.Core.Model;
@@ -11,7 +12,7 @@ internal static class RiffWaveFormat
     private const ushort WaveFormatIeeeFloat = 0x0003;
     private const ushort WaveFormatExtensible = 0xFFFE;
 
-    private static readonly Dictionary<ushort, string> FormatNames = new()
+    private static readonly FrozenDictionary<ushort, string> FormatNames = new Dictionary<ushort, string>()
     {
         [0x0001] = "PCM",
         [0x0002] = "Microsoft ADPCM",
@@ -33,7 +34,7 @@ internal static class RiffWaveFormat
         [0x2001] = "DTS",
         [0xFFFE] = "Extensible",
         [0xFFFF] = "Development / Experimental",
-    };
+    }.ToFrozenDictionary();
 
     private static readonly (uint Mask, string Name)[] SpeakerFlags =
     [

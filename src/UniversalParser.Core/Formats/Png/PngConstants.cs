@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 namespace UniversalParser.Core.Formats.Png;
 
 /// <summary>
@@ -15,7 +16,7 @@ internal static class PngConstants
     /// <summary>PNG four-byte integers are limited to 2^31 - 1 by the specification.</summary>
     public const uint MaxChunkLength = 0x7FFF_FFFF;
 
-    private static readonly Dictionary<string, string> Names = new(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> Names = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["IHDR"] = "ImageHeader",
         ["PLTE"] = "Palette",
@@ -43,7 +44,7 @@ internal static class PngConstants
         ["fcTL"] = "FrameControl",
         ["fdAT"] = "FrameData",
         ["oFFs"] = "ImageOffset",
-    };
+    }.ToFrozenDictionary();
 
     public static bool IsKnown(string chunkType) => Names.ContainsKey(chunkType);
 

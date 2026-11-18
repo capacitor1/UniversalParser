@@ -899,7 +899,7 @@ internal sealed class PhotoshopImageResources
         }
 
         var bytes = data.ReadPrefix(length, _context.Limits.MaxStringBytes, out var range);
-        _fields.Raw(key, TextEscaping.Escape(Encoding.Latin1.GetString(bytes)), range);
+        _fields.Raw(key, TextDecoding.Display(bytes, TextEncodings.Latin1), range);
         if (bytes.Length < length)
         {
             _fields.Warning(DiagnosticCodes.LimitString, $"'{key}' is shown as a prefix.", range);
@@ -933,7 +933,7 @@ internal sealed class PhotoshopImageResources
 
         var limit = _context.Limits.MaxStringBytes & ~1;
         var bytes = data.ReadPrefix(byteLength, limit, out var range);
-        _fields.Raw(key, TextEscaping.Escape(Encoding.BigEndianUnicode.GetString(bytes)), range);
+        _fields.Raw(key, TextDecoding.Display(bytes, Encoding.BigEndianUnicode), range);
         if (bytes.Length < byteLength)
         {
             _fields.Warning(DiagnosticCodes.LimitString, $"'{key}' is shown as a prefix.", range);
@@ -948,7 +948,7 @@ internal sealed class PhotoshopImageResources
     private void ReadText(BigEndianReader data, string key, Encoding encoding)
     {
         var bytes = data.ReadRemainingPrefix(_context.Limits.MaxStringBytes, out var length, out var range);
-        _fields.Raw(key, TextEscaping.Escape(encoding.GetString(bytes)), range);
+        _fields.Raw(key, TextDecoding.Display(bytes, encoding), range);
         if (bytes.Length < length)
         {
             _fields.Warning(DiagnosticCodes.LimitString, $"'{key}' is shown as a prefix.", range);

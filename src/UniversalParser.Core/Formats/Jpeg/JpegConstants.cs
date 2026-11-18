@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Globalization;
 
 namespace UniversalParser.Core.Formats.Jpeg;
@@ -18,7 +19,7 @@ internal static class JpegConstants
     public const byte Dri = 0xDD;
     public const byte Com = 0xFE;
 
-    private static readonly Dictionary<byte, string> Names = new()
+    private static readonly FrozenDictionary<byte, string> Names = new Dictionary<byte, string>()
     {
         [0x01] = "TEM",
         [0xC0] = "SOF0",
@@ -70,9 +71,9 @@ internal static class JpegConstants
         [0xEE] = "APP14",
         [0xEF] = "APP15",
         [0xFE] = "COM",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<byte, string> ReadableNames = new()
+    private static readonly FrozenDictionary<byte, string> ReadableNames = new Dictionary<byte, string>()
     {
         [0x01] = "Temporary",
         [0xC0] = "StartOfFrameBaselineDct",
@@ -124,7 +125,7 @@ internal static class JpegConstants
         [0xEE] = "Application14",
         [0xEF] = "Application15",
         [0xFE] = "Comment",
-    };
+    }.ToFrozenDictionary();
 
     public static bool IsStandalone(byte code) =>
         code is Tem or Soi or Eoi or (>= 0xD0 and <= 0xD7);

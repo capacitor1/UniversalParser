@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Text;
 using UniversalParser.App.Controls;
 using UniversalParser.Core.Binary;
 using UniversalParser.Core.Export;
@@ -510,7 +509,7 @@ internal sealed partial class MainForm : Form
     /// Returns the tree node for one child index, expanding the parent so that all of its
     /// children are materialised.
     /// </summary>
-    private TreeNode? EnsureChildTreeNode(TreeNode parent, int childIndex)
+    private static TreeNode? EnsureChildTreeNode(TreeNode parent, int childIndex)
     {
         if (parent.Tag is not FormatNode parentNode || parentNode.Children.Length == 0)
         {
@@ -827,8 +826,12 @@ internal sealed partial class MainForm : Form
 
     private static string FormatRange(SourceRange range)
     {
-        var offset = range.Offset > uint.MaxValue ? range.Offset.ToString("X16") : range.Offset.ToString("X8");
-        var length = range.Length > uint.MaxValue ? range.Length.ToString("X16") : range.Length.ToString("X8");
+        var offset = range.Offset > uint.MaxValue
+            ? range.Offset.ToString("X16", CultureInfo.InvariantCulture)
+            : range.Offset.ToString("X8", CultureInfo.InvariantCulture);
+        var length = range.Length > uint.MaxValue
+            ? range.Length.ToString("X16", CultureInfo.InvariantCulture)
+            : range.Length.ToString("X8", CultureInfo.InvariantCulture);
         return $"0x{offset}+0x{length}";
     }
 
@@ -1086,7 +1089,7 @@ internal sealed partial class MainForm : Form
             var outcome = await Task.Run(
                 () =>
                 {
-                    using var writer = new StreamWriter(path, false, new UTF8Encoding(false));
+                    using var writer = new StreamWriter(path, false, TextEncodings.Utf8);
                     return ForensicReportWriter.Write(writer, request, progress, cts.Token);
                 },
                 cts.Token).ConfigureAwait(true);

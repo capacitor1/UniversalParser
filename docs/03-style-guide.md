@@ -267,6 +267,23 @@ FilePropertiesObject '{75B22630-668E-11CF-A6D9-00AA0062CE6C}'
 
 ---
 
+### 7.1 文本显示与编码
+
+所有格式共用 `TextEncodings` / `TextDecoding` / `TextEscaping`，不再各自复制转义或编码对象。
+
+- 控制字符保留为可见转义：`\0`、`\r`、`\n`、`\t`、`\xNN`；不得丢弃换行、把换行并成一行或替换为 `.`。
+- **NUL 结尾字符串**：显示 `ThisIsText\0`。终止符之后的 padding/下一字段不显示，也不拼进值。
+- **长度前缀/固定宽度字符串**：只显示实际 payload；不额外添加 `\0`。固定宽度的 NUL padding 可以裁掉，
+  值内部的 NUL 仍转义为 `\0`。
+- **有编码标识的文本**：按标识解码（`ISO-8859-1`、UTF-8、UTF-16LE/BE 等）。
+  字节序列对该编码非法时，整段显示为 `\xFF\xFE` 形式，不使用 U+FFFD，也不报异常。
+- **无编码标识的文本**：先严格 UTF-8，再 Windows-1252；两者都不像文本时显示 hex。
+  Latin-1 只用于 4CC/签名字节身份，不用于 legacy 文本回退。
+- 多行文本保持一个字段，换行显示为 `\n`，不拆成多个字段。
+- 解码边界（长度上限）不把被截断的 UTF-8/UTF-16 末字符误报为非法；显示前缀并给 `LIMIT_STRING`。
+
+---
+
 ## 8. RawData 与 Hex
 
 ### 8.1 RawData
@@ -320,6 +337,8 @@ UniversalParser Forensic Report
   中间以独立说明行分隔，并提示 `Export Raw`。
 - 没有 `MaxExportBytes`，也没有对应 JSON 配置项。
 - 流式写入、可取消、有进度；文件名 sanitize；控制字符转义。
+- 文件名 sanitize 同时处理 Windows 保留设备名（`CON`/`PRN`/`AUX`/`NUL`/`COM1-9`/`LPT1-9`），
+  包括 `COM¹`/`LPT³` 这类上标数字形式；所有平台使用同一策略，不提供宽松开关。
 
 ### 9.4 格式
 

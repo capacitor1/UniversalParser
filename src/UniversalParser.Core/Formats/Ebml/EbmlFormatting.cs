@@ -1,7 +1,8 @@
 using System.Buffers.Binary;
+using System.Collections.Frozen;
 using System.Globalization;
-using System.Text;
 using UniversalParser.Core.Binary;
+using UniversalParser.Core.Formatting;
 
 namespace UniversalParser.Core.Formats.Ebml;
 
@@ -10,10 +11,9 @@ internal static class EbmlFormatting
 {
     public const int MaxInlineBinaryBytes = 256;
 
-    private static readonly UTF8Encoding Utf8 = new(false, throwOnInvalidBytes: false);
     private static readonly DateTimeOffset EbmlEpoch = new(2001, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
-    private static readonly Dictionary<ulong, string> TrackTypes = new()
+    private static readonly FrozenDictionary<ulong, string> TrackTypes = new Dictionary<ulong, string>()
     {
         [0x01] = "video",
         [0x02] = "audio",
@@ -23,7 +23,7 @@ internal static class EbmlFormatting
         [0x06] = "button",
         [0x07] = "control",
         [0x08] = "metadata",
-    };
+    }.ToFrozenDictionary();
 
     public static string FormatId(ulong id) => $"0x{id:X}";
 
@@ -58,9 +58,9 @@ internal static class EbmlFormatting
 
     public static double ReadDouble(ReadOnlySpan<byte> data) => BinaryPrimitives.ReadDoubleBigEndian(data);
 
-    public static string FormatFloat(float value) => value.ToString("R", CultureInfo.InvariantCulture);
+    public static string FormatFloat(float value) => ValueFormat.FloatingPoint(value);
 
-    public static string FormatFloat(double value) => value.ToString("R", CultureInfo.InvariantCulture);
+    public static string FormatFloat(double value) => ValueFormat.FloatingPoint(value);
 
     public static string FormatDate(long nanoseconds)
     {
@@ -88,7 +88,7 @@ internal static class EbmlFormatting
             end--;
         }
 
-        return Utf8.GetString(data[..end]);
+        return TextDecoding.Display(data[..end], TextEncodings.Utf8);
     }
 
     public static string FormatHex(ReadOnlySpan<byte> data) => HexFormatting.Format(data, MaxInlineBinaryBytes);

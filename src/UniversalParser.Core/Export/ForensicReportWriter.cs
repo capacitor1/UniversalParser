@@ -50,7 +50,7 @@ public static class ForensicReportWriter
         ArgumentNullException.ThrowIfNull(request);
         cancellationToken.ThrowIfCancellationRequested();
         request.Document.Limits.Validate();
-        var counting = new ReportByteCountingWriter(writer);
+        using var counting = new ReportByteCountingWriter(writer);
         var hexTruncated = WriteCore(counting, request, progress, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         counting.Flush();

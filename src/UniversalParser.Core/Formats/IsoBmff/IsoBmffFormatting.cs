@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using UniversalParser.Core.Formatting;
 
 namespace UniversalParser.Core.Formats.IsoBmff;
 
@@ -43,8 +44,7 @@ internal static class IsoBmffFormatting
     public static string FormatFixed1616(uint raw) =>
         FormatFixed(unchecked((int)raw), 65536.0, raw);
 
-    public static string FormatFixed1616Signed(uint raw) =>
-        FormatFixed(unchecked((int)raw), 65536.0, raw);
+    public static string FormatFixed1616Signed(uint raw) => FormatFixed1616(raw);
 
     public static string FormatFixed88(ushort raw) =>
         FormatFixed(unchecked((short)raw), 256.0, raw);
@@ -95,59 +95,32 @@ internal static class IsoBmffFormatting
             return "<empty>";
         }
 
-        var chars = value.ToCharArray();
-        for (var index = 0; index < chars.Length; index++)
-        {
-            if (chars[index] < 0x20 || chars[index] == 0x7F)
-            {
-                chars[index] = '.';
-            }
-        }
-
-        return new string(chars);
+        return TextEscaping.Escape(value);
     }
 
     public static string DecodeText(ReadOnlySpan<byte> bytes)
     {
         if (bytes.Length >= 2 && bytes[0] == 0xFE && bytes[1] == 0xFF)
         {
-            var length = bytes.Length;
-            if (length >= 4 && bytes[^1] == 0 && bytes[^2] == 0)
-            {
-                length -= 2;
-            }
-
-            return Encoding.BigEndianUnicode.GetString(bytes[2..length]);
+            return TextDecoding.Display(bytes[2..], Encoding.BigEndianUnicode);
         }
 
         if (bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE)
         {
-            var length = bytes.Length;
-            if (length >= 4 && bytes[^1] == 0 && bytes[^2] == 0)
-            {
-                length -= 2;
-            }
-
-            return Encoding.Unicode.GetString(bytes[2..length]);
+            return TextDecoding.Display(bytes[2..], Encoding.Unicode);
         }
 
+        // Length-prefixed strings may carry NUL padding; keep exactly one escaped terminator.
         var end = bytes.Length;
-        if (end >= 1 && bytes[end - 1] == 0)
+        while (end > 0 && bytes[end - 1] == 0)
         {
             end--;
         }
 
-        return Encoding.UTF8.GetString(bytes[..end]);
+        var text = TextDecoding.Display(bytes[..end], Encoding.UTF8);
+        return end < bytes.Length ? text + "\\0" : text;
     }
 
-    public static string ReadNullTerminatedText(ReadOnlySpan<byte> bytes, Encoding encoding)
-    {
-        var end = bytes.IndexOf((byte)0);
-        if (end < 0)
-        {
-            end = bytes.Length;
-        }
-
-        return encoding.GetString(bytes[..end]);
-    }
+    public static string ReadNullTerminatedText(ReadOnlySpan<byte> bytes, Encoding encoding) =>
+        TextDecoding.DisplayNullTerminated(bytes, encoding);
 }

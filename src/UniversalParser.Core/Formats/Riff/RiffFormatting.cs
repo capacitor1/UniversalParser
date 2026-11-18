@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Text;
 using UniversalParser.Core.Binary;
+using UniversalParser.Core.Formatting;
+using UniversalParser.Core.Model;
 
 namespace UniversalParser.Core.Formats.Riff;
 
@@ -12,67 +14,32 @@ internal static class RiffFormatting
 {
     public static string DecodeFourCc(ReadOnlySpan<byte> bytes) => Encoding.Latin1.GetString(bytes);
 
-    public static string FormatFourCc(string id) => FormatFourCc(Encoding.Latin1.GetBytes(id));
+    public static string FormatFourCc(string id) => RawIdentifier.FormatText(id);
 
     public static string SanitizeFourCc(string id) => SanitizeFourCc(Encoding.Latin1.GetBytes(id));
 
     /// <summary>Escapes control bytes and keeps printable characters, including spaces, verbatim.</summary>
-    public static string FormatFourCc(ReadOnlySpan<byte> bytes)
-    {
-        var builder = new StringBuilder(bytes.Length);
-        foreach (var value in bytes)
-        {
-            if (value is >= 0x20 and <= 0x7E)
-            {
-                builder.Append((char)value);
-            }
-            else
-            {
-                builder.Append("\\x").Append(value.ToString("X2", CultureInfo.InvariantCulture));
-            }
-        }
-
-        return builder.ToString();
-    }
+    public static string FormatFourCc(ReadOnlySpan<byte> bytes) => RawIdentifier.FormatBytes(bytes);
 
     /// <summary>Title-safe FourCC: control characters become '.', printable characters are kept.</summary>
     public static string SanitizeFourCc(ReadOnlySpan<byte> bytes)
     {
-        var builder = new StringBuilder(bytes.Length);
-        foreach (var value in bytes)
+        return string.Create(bytes.Length, bytes, static (destination, source) =>
         {
-            builder.Append(value is >= 0x20 and <= 0x7E ? (char)value : '.');
-        }
-
-        return builder.ToString();
+            for (var index = 0; index < source.Length; index++)
+            {
+                var value = source[index];
+                destination[index] = value is >= 0x20 and <= 0x7E ? (char)value : '.';
+            }
+        });
     }
 
     /// <summary>
-    /// RIFF text is usually CP1252, but many real files carry UTF-8. Try strict UTF-8 first,
-    /// then fall back to Latin1 so no byte is lost.
+    /// RIFF text is usually CP1252, but many real files carry UTF-8. The shared predictor tries
+    /// strict UTF-8 first, then Windows-1252, and keeps a NUL terminator as <c>\0</c>.
     /// </summary>
-    public static string DecodeText(ReadOnlySpan<byte> data)
-    {
-        var end = data.IndexOf((byte)0);
-        if (end >= 0)
-        {
-            data = data[..end];
-        }
-
-        if (data.IsEmpty)
-        {
-            return string.Empty;
-        }
-
-        try
-        {
-            return new UTF8Encoding(false, throwOnInvalidBytes: true).GetString(data);
-        }
-        catch (ArgumentException)
-        {
-            return Encoding.Latin1.GetString(data);
-        }
-    }
+    public static string DecodeText(ReadOnlySpan<byte> data) =>
+        TextDecoding.DisplayPredictedNullTerminated(data);
 
     public static string FormatBytes(long bytes) => bytes switch
     {

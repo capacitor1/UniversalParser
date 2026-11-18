@@ -295,7 +295,10 @@ internal static class NbtNodeParser
 
         reader.Skip(length - count);
         var text = TextDecoding.Utf8(bytes, complete: count == length, out var invalidEncoding);
-        fields.Raw("value", TextEscaping.Escape(text), new SourceRange(dataStart, count));
+        fields.Raw(
+            "value",
+            invalidEncoding ? TextDecoding.Hex(bytes) : TextEscaping.Escape(text),
+            new SourceRange(dataStart, count));
         if (count < length)
         {
             fields.Warning(DiagnosticCodes.LimitString, "The TAG_String value is shown as a prefix.", node.Range);
@@ -439,21 +442,9 @@ internal static class NbtNodeParser
         fields.Warning(DiagnosticCodes.TruncatedPayload, $"{what} is truncated.", node.Range);
     }
 
-    private static string FormatFloat(float value) => value switch
-    {
-        float.NaN => "NaN",
-        float.PositiveInfinity => "Infinity",
-        float.NegativeInfinity => "-Infinity",
-        _ => value.ToString("G9", CultureInfo.InvariantCulture),
-    };
+    private static string FormatFloat(float value) => ValueFormat.FloatingPoint(value, "G9");
 
-    private static string FormatDouble(double value) => value switch
-    {
-        double.NaN => "NaN",
-        double.PositiveInfinity => "Infinity",
-        double.NegativeInfinity => "-Infinity",
-        _ => value.ToString("G17", CultureInfo.InvariantCulture),
-    };
+    private static string FormatDouble(double value) => ValueFormat.FloatingPoint(value, "G17");
 
     private static bool TryParseElementStableId(string? stableId, out byte type, out long index)
     {

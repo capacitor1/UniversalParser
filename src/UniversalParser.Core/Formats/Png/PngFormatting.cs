@@ -1,7 +1,9 @@
+using System.Collections.Frozen;
 using System.Globalization;
 using System.Text;
 using System.Text.Unicode;
 using UniversalParser.Core.Binary;
+using UniversalParser.Core.Formatting;
 
 namespace UniversalParser.Core.Formats.Png;
 
@@ -12,26 +14,26 @@ namespace UniversalParser.Core.Formats.Png;
 /// </summary>
 internal static class PngFormatting
 {
-    private static readonly Dictionary<int, string> ColorTypes = new()
+    private static readonly FrozenDictionary<int, string> ColorTypes = new Dictionary<int, string>()
     {
         [0] = "Greyscale",
         [2] = "Truecolor",
         [3] = "Indexed-color",
         [4] = "Greyscale with alpha",
         [6] = "Truecolor with alpha",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> RenderingIntents = new()
+    private static readonly FrozenDictionary<int, string> RenderingIntents = new Dictionary<int, string>()
     {
         [0] = "Perceptual",
         [1] = "Relative colorimetric",
         [2] = "Saturation",
         [3] = "Absolute colorimetric",
-    };
+    }.ToFrozenDictionary();
 
     // ITU-T H.273 code points used by the cICP chunk. Only assigned values get a name; reserved
     // code points stay as their raw number so a file cannot make the field list claim a meaning.
-    private static readonly Dictionary<int, string> ColorPrimaries = new()
+    private static readonly FrozenDictionary<int, string> ColorPrimaries = new Dictionary<int, string>()
     {
         [1] = "BT.709",
         [2] = "Unspecified",
@@ -45,9 +47,9 @@ internal static class PngFormatting
         [11] = "SMPTE RP 431-2 (DCI-P3)",
         [12] = "SMPTE EG 432-1 (Display P3)",
         [22] = "EBU Tech 3213-E",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> TransferFunctions = new()
+    private static readonly FrozenDictionary<int, string> TransferFunctions = new Dictionary<int, string>()
     {
         [1] = "BT.709",
         [2] = "Unspecified",
@@ -66,9 +68,9 @@ internal static class PngFormatting
         [16] = "SMPTE ST 2084 (PQ)",
         [17] = "SMPTE ST 428-1",
         [18] = "ARIB STD-B67 (HLG)",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> MatrixCoefficients = new()
+    private static readonly FrozenDictionary<int, string> MatrixCoefficients = new Dictionary<int, string>()
     {
         [0] = "Identity",
         [1] = "BT.709",
@@ -84,20 +86,20 @@ internal static class PngFormatting
         [12] = "Chromaticity-derived non-constant luminance",
         [13] = "Chromaticity-derived constant luminance",
         [14] = "ICtCp",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> DisposeOperations = new()
+    private static readonly FrozenDictionary<int, string> DisposeOperations = new Dictionary<int, string>()
     {
         [0] = "APNG_DISPOSE_OP_NONE",
         [1] = "APNG_DISPOSE_OP_BACKGROUND",
         [2] = "APNG_DISPOSE_OP_PREVIOUS",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<int, string> BlendOperations = new()
+    private static readonly FrozenDictionary<int, string> BlendOperations = new Dictionary<int, string>()
     {
         [0] = "APNG_BLEND_OP_SOURCE",
         [1] = "APNG_BLEND_OP_OVER",
-    };
+    }.ToFrozenDictionary();
 
     public static string DecodeChunkType(ReadOnlySpan<byte> bytes) => Encoding.Latin1.GetString(bytes);
 
@@ -222,55 +224,14 @@ internal static class PngFormatting
         _ => false,
     };
 
-    public static string FormatText(ReadOnlySpan<byte> bytes, Encoding encoding)
-    {
-        ArgumentNullException.ThrowIfNull(encoding);
-        return EscapeText(encoding.GetString(bytes));
-    }
+    public static string FormatText(ReadOnlySpan<byte> bytes, Encoding encoding) => TextDecoding.Escaped(bytes, encoding);
 
     public static bool IsValidUtf8(ReadOnlySpan<byte> bytes) => Utf8.IsValid(bytes);
 
-    public static string EscapeText(string value)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-        var builder = new StringBuilder(value.Length);
-        foreach (var character in value)
-        {
-            switch (character)
-            {
-                case '\0':
-                    builder.Append("\\0");
-                    break;
-                case '\r':
-                    builder.Append("\\r");
-                    break;
-                case '\n':
-                    builder.Append("\\n");
-                    break;
-                case '\t':
-                    builder.Append("\\t");
-                    break;
-                default:
-                    if (character < 0x20 || character == 0x7F)
-                    {
-                        builder.Append("\\x").Append(((int)character).ToString("X2", CultureInfo.InvariantCulture));
-                    }
-                    else
-                    {
-                        builder.Append(character);
-                    }
-
-                    break;
-            }
-        }
-
-        return builder.ToString();
-    }
+    public static string EscapeText(string value) => TextEscaping.Escape(value);
 
     public static string FormatHex(ReadOnlySpan<byte> bytes, int maxBytes) => HexFormatting.Format(bytes, maxBytes);
 
-    private static string FormatEnum(int value, Dictionary<int, string> names) =>
-        names.TryGetValue(value, out var name)
-            ? string.Create(CultureInfo.InvariantCulture, $"{value} ({name})")
-            : value.ToString(CultureInfo.InvariantCulture);
+    private static string FormatEnum(int value, IReadOnlyDictionary<int, string> names) =>
+        ValueFormat.Enum(value, names);
 }

@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 namespace UniversalParser.Core.Formats.Riff;
 
 /// <summary>
@@ -6,7 +7,7 @@ namespace UniversalParser.Core.Formats.Riff;
 /// </summary>
 internal static class RiffChunkNames
 {
-    private static readonly Dictionary<string, string> InfoTags = new(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> InfoTags = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["IARL"] = "ArchivalLocation",
         ["IART"] = "Artist",
@@ -39,7 +40,7 @@ internal static class RiffChunkNames
         ["ISRF"] = "SourceForm",
         ["ITCH"] = "Technician",
         ["ITRK"] = "TrackNumber",
-    };
+    }.ToFrozenDictionary();
 
     public static bool IsInfoTag(string id) => InfoTags.ContainsKey(id);
 

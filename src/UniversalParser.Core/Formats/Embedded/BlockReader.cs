@@ -9,7 +9,7 @@ namespace UniversalParser.Core.Formats.Embedded;
 /// both available because FLAC is big endian while Ogg page headers and Vorbis comments are
 /// little endian. Reads never cross the block range.
 /// </summary>
-internal sealed class BlockReader
+internal sealed class BlockReader : IBoundedReader
 {
     private readonly SourceReader _reader;
 
@@ -23,24 +23,22 @@ internal sealed class BlockReader
     public long Position => _reader.Position;
     public long Remaining => _reader.Remaining;
     public SourceRange CurrentRange => new(_reader.Position, _reader.Remaining);
-    public SourceRange LastRange { get; private set; }
+    public SourceRange LastRange { get; set; }
 
-    public bool TryByte(out byte value)
-    {
-        var start = _reader.Position;
-        if (_reader.Remaining < 1)
-        {
-            value = 0;
-            return false;
-        }
+    public byte ReadByteCore() => _reader.ReadByte();
 
-        value = _reader.ReadByte();
-        LastRange = new SourceRange(start, 1);
-        return true;
-    }
+    public ushort ReadUInt16Core(Endian endian) => _reader.ReadUInt16(endian);
 
-    public bool TryUInt16LE(out ushort value) => TryUInt16(out value, Endian.Little);
-    public bool TryUInt16BE(out ushort value) => TryUInt16(out value, Endian.Big);
+    public uint ReadUInt32Core(Endian endian) => _reader.ReadUInt32(endian);
+
+    public ulong ReadUInt64Core(Endian endian) => _reader.ReadUInt64(endian);
+
+    public void ReadExactlyCore(Span<byte> destination) => _reader.ReadExactly(destination);
+
+    public void SkipCore(long count) => _reader.Skip(count);
+
+    public bool TryUInt16LE(out ushort value) => this.TryUInt16(Endian.Little, out value);
+    public bool TryUInt16BE(out ushort value) => this.TryUInt16(Endian.Big, out value);
 
     public bool TryInt16LE(out short value)
     {
@@ -57,36 +55,12 @@ internal sealed class BlockReader
     public bool TryUInt24LE(out uint value) => TryUInt24(out value, Endian.Little);
     public bool TryUInt24BE(out uint value) => TryUInt24(out value, Endian.Big);
 
-    public bool TryUInt32LE(out uint value) => TryUInt32(out value, Endian.Little);
-    public bool TryUInt32BE(out uint value) => TryUInt32(out value, Endian.Big);
+    public bool TryUInt32LE(out uint value) => this.TryUInt32(Endian.Little, out value);
+    public bool TryUInt32BE(out uint value) => this.TryUInt32(Endian.Big, out value);
 
-    public bool TryUInt64LE(out ulong value)
-    {
-        var start = _reader.Position;
-        if (_reader.Remaining < 8)
-        {
-            value = 0;
-            return false;
-        }
+    public bool TryUInt64LE(out ulong value) => this.TryUInt64(Endian.Little, out value);
 
-        value = _reader.ReadUInt64(Endian.Little);
-        LastRange = new SourceRange(start, 8);
-        return true;
-    }
-
-    public bool TryUInt64BE(out ulong value)
-    {
-        var start = _reader.Position;
-        if (_reader.Remaining < 8)
-        {
-            value = 0;
-            return false;
-        }
-
-        value = _reader.ReadUInt64(Endian.Big);
-        LastRange = new SourceRange(start, 8);
-        return true;
-    }
+    public bool TryUInt64BE(out ulong value) => this.TryUInt64(Endian.Big, out value);
 
     public bool TryInt64LE(out long value)
     {
@@ -97,19 +71,6 @@ internal sealed class BlockReader
         }
 
         value = unchecked((long)raw);
-        return true;
-    }
-
-    public bool TryReadBytes(Span<byte> destination)
-    {
-        var start = _reader.Position;
-        if (_reader.Remaining < destination.Length)
-        {
-            return false;
-        }
-
-        _reader.ReadExactly(destination);
-        LastRange = new SourceRange(start, destination.Length);
         return true;
     }
 
@@ -137,7 +98,7 @@ internal sealed class BlockReader
         _reader.Skip(length - count);
         LastRange = range;
         truncated = length > maxBytes;
-        return TextEscaping.Escape(Encoding.UTF8.GetString(bytes));
+        return TextDecoding.Display(bytes, TextEncodings.Utf8);
     }
 
     /// <summary>Reads a NUL-terminated string without crossing the block or exceeding the cap.</summary>
@@ -149,7 +110,7 @@ internal sealed class BlockReader
         var length = 0;
         while (length < maxBytes)
         {
-            if (!TryByte(out var item))
+            if (!this.TryByte(out var item))
             {
                 value = string.Empty;
                 range = SourceRange.Empty;
@@ -176,20 +137,6 @@ internal sealed class BlockReader
         return false;
     }
 
-    private bool TryUInt16(out ushort value, Endian endian)
-    {
-        var start = _reader.Position;
-        if (_reader.Remaining < 2)
-        {
-            value = 0;
-            return false;
-        }
-
-        value = _reader.ReadUInt16(endian);
-        LastRange = new SourceRange(start, 2);
-        return true;
-    }
-
     private bool TryUInt24(out uint value, Endian endian)
     {
         var start = _reader.Position;
@@ -201,20 +148,6 @@ internal sealed class BlockReader
 
         value = _reader.ReadUInt24(endian);
         LastRange = new SourceRange(start, 3);
-        return true;
-    }
-
-    private bool TryUInt32(out uint value, Endian endian)
-    {
-        var start = _reader.Position;
-        if (_reader.Remaining < 4)
-        {
-            value = 0;
-            return false;
-        }
-
-        value = _reader.ReadUInt32(endian);
-        LastRange = new SourceRange(start, 4);
         return true;
     }
 }

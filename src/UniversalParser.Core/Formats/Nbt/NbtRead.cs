@@ -145,7 +145,7 @@ internal static class NbtRead
             type,
             nameLength,
             nameStart,
-            TextEscaping.Escape(name),
+            nameInvalid ? TextDecoding.Hex(nameBytes) : TextEscaping.Escape(name),
             nameInvalid,
             nameStart + nameLength);
         failure = NbtReadFailure.None;

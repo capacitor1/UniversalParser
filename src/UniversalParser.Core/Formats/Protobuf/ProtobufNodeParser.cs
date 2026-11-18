@@ -120,6 +120,10 @@ internal static class ProtobufNodeParser
                 unchecked((long)header.VarintValue).ToString(CultureInfo.InvariantCulture),
                 header.ValueRange);
         }
+
+        // Without a schema this is an alternative sint32/sint64 interpretation, not the raw value.
+        var zigZag = (long)(header.VarintValue >> 1) ^ -(long)(header.VarintValue & 1);
+        fields.Derived("<ZigZagValue>", zigZag, header.ValueRange);
     }
 
     private static void AddFixed(
@@ -157,6 +161,10 @@ internal static class ProtobufNodeParser
                     header.ValueRange);
             }
 
+            fields.Derived(
+                "<DoubleValue>",
+                ValueFormat.FloatingPoint(BinaryPrimitives.ReadDoubleLittleEndian(buffer)),
+                header.ValueRange);
             return;
         }
 
@@ -166,6 +174,10 @@ internal static class ProtobufNodeParser
             string.Create(CultureInfo.InvariantCulture, $"0x{value32:X8}"),
             header.ValueRange);
         fields.Derived("<UnsignedValue>", value32, header.ValueRange);
+        fields.Derived(
+            "<FloatValue>",
+            ValueFormat.FloatingPoint(BinaryPrimitives.ReadSingleLittleEndian(buffer)),
+            header.ValueRange);
     }
 
     private static void AddLengthDelimited(
@@ -255,7 +267,10 @@ internal static class ProtobufNodeParser
         var bytes = new byte[byteCount];
         var read = SourceRead.ReadAtMost(context.Source, payloadRange.Offset, bytes);
         var text = TextDecoding.Utf8(bytes.AsSpan(0, read), complete: read == payloadRange.Length, out var invalidEncoding);
-        fields.Derived("<Text>", TextEscaping.Escape(text), new SourceRange(payloadRange.Offset, read));
+        fields.Derived(
+            "<Text>",
+            invalidEncoding ? TextDecoding.Hex(bytes.AsSpan(0, read)) : TextEscaping.Escape(text),
+            new SourceRange(payloadRange.Offset, read));
 
         if (read < payloadRange.Length)
         {

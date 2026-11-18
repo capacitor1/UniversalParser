@@ -1,0 +1,7 @@
+root = false
+
+[*.cs]
+# WinForms owns its controls and designer components; CA2213 cannot see that ownership.
+dotnet_diagnostic.CA2213.severity = none
+# UI continuations must resume on the UI thread.
+dotnet_diagnostic.CA2007.severity = none

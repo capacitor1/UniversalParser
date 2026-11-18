@@ -1,4 +1,5 @@
 using System.Globalization;
+using UniversalParser.Core.Binary;
 using UniversalParser.Core.Formats.Embedded;
 using UniversalParser.Core.Model;
 using UniversalParser.Core.Parsing;

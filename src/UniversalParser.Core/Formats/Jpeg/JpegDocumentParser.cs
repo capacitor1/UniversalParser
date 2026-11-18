@@ -234,7 +234,7 @@ internal sealed class JpegDocumentParser : IDisposable
         }
     }
 
-    private void AddNode(
+    private static void AddNode(
         ImmutableArray<FormatNode>.Builder children,
         string name,
         NodeKind kind,

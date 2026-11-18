@@ -39,11 +39,7 @@ internal static class JpegFormatting
         _ => value.ToString(CultureInfo.InvariantCulture),
     };
 
-    public static string FormatText(ReadOnlySpan<byte> bytes, Encoding encoding)
-    {
-        ArgumentNullException.ThrowIfNull(encoding);
-        return EscapeText(encoding.GetString(bytes));
-    }
+    public static string FormatText(ReadOnlySpan<byte> bytes, Encoding encoding) => TextDecoding.Escaped(bytes, encoding);
 
     public static string EscapeText(string value) => TextEscaping.Escape(value);
 }

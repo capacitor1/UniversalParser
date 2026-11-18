@@ -7,7 +7,7 @@ namespace UniversalParser.Core.Formats.Png;
 /// Bounded big-endian reader over one chunk's data. Reading never crosses the chunk data range;
 /// callers turn a false return into a truncation diagnostic instead of an exception.
 /// </summary>
-internal sealed class PngChunkDataReader
+internal sealed class PngChunkDataReader : IBoundedReader
 {
     private readonly SourceReader _reader;
 
@@ -21,49 +21,19 @@ internal sealed class PngChunkDataReader
     public long Position => _reader.Position;
     public long Remaining => _reader.Remaining;
     public SourceRange CurrentRange => new(_reader.Position, _reader.Remaining);
-    public SourceRange LastRange { get; private set; }
+    public SourceRange LastRange { get; set; }
 
-    public bool TryByte(out byte value)
-    {
-        var start = _reader.Position;
-        if (_reader.Remaining < 1)
-        {
-            value = 0;
-            return false;
-        }
+    public byte ReadByteCore() => _reader.ReadByte();
 
-        value = _reader.ReadByte();
-        LastRange = new SourceRange(start, 1);
-        return true;
-    }
+    public ushort ReadUInt16Core(Endian endian) => _reader.ReadUInt16(endian);
 
-    public bool TryUInt16BE(out ushort value)
-    {
-        var start = _reader.Position;
-        if (_reader.Remaining < 2)
-        {
-            value = 0;
-            return false;
-        }
+    public uint ReadUInt32Core(Endian endian) => _reader.ReadUInt32(endian);
 
-        value = _reader.ReadUInt16(Endian.Big);
-        LastRange = new SourceRange(start, 2);
-        return true;
-    }
+    public ulong ReadUInt64Core(Endian endian) => _reader.ReadUInt64(endian);
 
-    public bool TryUInt32BE(out uint value)
-    {
-        var start = _reader.Position;
-        if (_reader.Remaining < 4)
-        {
-            value = 0;
-            return false;
-        }
+    public void ReadExactlyCore(Span<byte> destination) => _reader.ReadExactly(destination);
 
-        value = _reader.ReadUInt32(Endian.Big);
-        LastRange = new SourceRange(start, 4);
-        return true;
-    }
+    public void SkipCore(long count) => _reader.Skip(count);
 
     public bool TryInt32BE(out int value)
     {
@@ -133,29 +103,4 @@ internal sealed class PngChunkDataReader
     /// <summary>Advances to the end of the chunk without materializing the remaining bytes.</summary>
     public void SkipRemaining() => _reader.Skip(_reader.Remaining);
 
-    /// <summary>
-    /// Returns at most <paramref name="maxBytes"/> of the remaining data and advances to the end of
-    /// the chunk. <paramref name="range"/> still covers all remaining bytes, so the field range does
-    /// not shrink when only a prefix is materialized.
-    /// </summary>
-    public byte[] ReadRemainingPrefix(int maxBytes, out long totalLength, out SourceRange range)
-    {
-        ArgumentOutOfRangeException.ThrowIfNegative(maxBytes);
-
-        var start = _reader.Position;
-        totalLength = _reader.Remaining;
-        range = new SourceRange(start, totalLength);
-        var count = (int)Math.Min(totalLength, maxBytes);
-        if (count == 0)
-        {
-            _reader.Skip(totalLength);
-            return [];
-        }
-
-        var bytes = new byte[count];
-        _reader.ReadExactly(bytes);
-        _reader.Skip(totalLength - count);
-        LastRange = range;
-        return bytes;
-    }
 }

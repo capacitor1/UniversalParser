@@ -73,6 +73,7 @@ internal static class IsoBmffFieldHelpers
         ArgumentNullException.ThrowIfNull(data);
         var buffer = new byte[Math.Min(maxBytes, 256)];
         var length = 0;
+        var terminated = false;
         while (length < maxBytes)
         {
             if (!data.TryReadUInt8Raw(out var value))
@@ -82,6 +83,7 @@ internal static class IsoBmffFieldHelpers
 
             if (value == 0)
             {
+                terminated = true;
                 break;
             }
 
@@ -99,6 +101,7 @@ internal static class IsoBmffFieldHelpers
             buffer[length++] = value;
         }
 
-        return IsoBmffFormatting.DecodeText(buffer.AsSpan(0, length));
+        var text = IsoBmffFormatting.DecodeText(buffer.AsSpan(0, length));
+        return terminated ? text + "\\0" : text;
     }
 }

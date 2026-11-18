@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using UniversalParser.Core.Binary;
+using UniversalParser.Core.Formatting;
 
 namespace UniversalParser.Core.Export;
 
@@ -14,32 +15,7 @@ public static class ReportText
             return string.Empty;
         }
 
-        StringBuilder? builder = null;
-        for (var index = 0; index < value.Length; index++)
-        {
-            var character = value[index];
-            string? replacement = character switch
-            {
-                '\r' => "\\r",
-                '\n' => "\\n",
-                '\t' => "\\t",
-                _ when char.IsControl(character) => string.Create(
-                    CultureInfo.InvariantCulture,
-                    $"\\x{(int)character:X2}"),
-                _ => null,
-            };
-
-            if (replacement is null)
-            {
-                builder?.Append(character);
-                continue;
-            }
-
-            builder ??= new StringBuilder(value.Length + 16).Append(value, 0, index);
-            builder.Append(replacement);
-        }
-
-        return builder?.ToString() ?? value;
+        return TextEscaping.Escape(value, escapeNull: false, escapeAllControls: true);
     }
 
     /// <summary>
@@ -54,13 +30,11 @@ public static class ReportText
             return fallback;
         }
 
-        var invalid = Path.GetInvalidFileNameChars();
         var builder = new StringBuilder(value.Length);
         foreach (var character in value)
         {
             builder.Append(
                 character is '<' or '>' or ':' or '"' or '/' or '\\' or '|' or '?' or '*'
-                || Array.IndexOf(invalid, character) >= 0
                 || char.IsControl(character)
                     ? '_'
                     : character);
@@ -87,12 +61,12 @@ public static class ReportText
             }
         }
 
-        var dot = result.IndexOf('.');
-        var stem = dot < 0 ? result : result[..dot];
+        var dot = result.IndexOf('.', StringComparison.Ordinal);
+        var stem = dot < 0 ? result.AsSpan() : result.AsSpan(0, dot);
         return IsReservedDeviceName(stem) ? "_" + result : result;
     }
 
-    private static bool IsReservedDeviceName(string stem)
+    private static bool IsReservedDeviceName(ReadOnlySpan<char> stem)
     {
         if (stem.Equals("CON", StringComparison.OrdinalIgnoreCase)
             || stem.Equals("PRN", StringComparison.OrdinalIgnoreCase)
@@ -105,7 +79,7 @@ public static class ReportText
         if (stem.Length == 4
             && (stem.StartsWith("COM", StringComparison.OrdinalIgnoreCase)
                 || stem.StartsWith("LPT", StringComparison.OrdinalIgnoreCase))
-            && stem[3] is >= '1' and <= '9')
+            && stem[3] is >= '1' and <= '9' or '¹' or '²' or '³')
         {
             return true;
         }

@@ -1,5 +1,7 @@
+using System.Collections.Frozen;
 using System.Globalization;
 using System.Text;
+using UniversalParser.Core.Formatting;
 using UniversalParser.Core.Model;
 
 namespace UniversalParser.Core.Formats.Embedded;
@@ -11,7 +13,7 @@ namespace UniversalParser.Core.Formats.Embedded;
 /// </summary>
 internal static class IccFormatting
 {
-    private static readonly Dictionary<string, string> ProfileClasses = new(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> ProfileClasses = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["scnr"] = "Input device profile",
         ["mntr"] = "Display device profile",
@@ -20,9 +22,9 @@ internal static class IccFormatting
         ["spac"] = "ColorSpace conversion profile",
         ["abst"] = "Abstract profile",
         ["nmcl"] = "Named colour profile",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<string, string> ColorSpaces = new(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> ColorSpaces = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["XYZ "] = "XYZ",
         ["Lab "] = "Lab",
@@ -49,40 +51,40 @@ internal static class IccFormatting
         ["DCLR"] = "13 colour",
         ["ECLR"] = "14 colour",
         ["FCLR"] = "15 colour",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<string, string> Platforms = new(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> Platforms = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["APPL"] = "Apple Computer Inc.",
         ["MSFT"] = "Microsoft Corporation",
         ["SGI "] = "Silicon Graphics Inc.",
         ["SUNW"] = "Sun Microsystems Inc.",
         ["TGNT"] = "Taligent Inc.",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<string, string> RenderingIntents = new(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> RenderingIntents = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["0"] = "Perceptual",
         ["1"] = "Media-relative colorimetric",
         ["2"] = "Saturation",
         ["3"] = "ICC-absolute colorimetric",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<string, string> Observers = new(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> Observers = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["0"] = "Unknown",
         ["1"] = "CIE 1931 standard colorimetric observer",
         ["2"] = "CIE 1964 standard colorimetric observer",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<string, string> Geometries = new(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> Geometries = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["0"] = "Unknown",
         ["1"] = "45/0 or 0/45",
         ["2"] = "0d or d/0",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<string, string> Illuminants = new(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> Illuminants = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["0"] = "Unknown",
         ["1"] = "D50",
@@ -93,18 +95,18 @@ internal static class IccFormatting
         ["6"] = "A",
         ["7"] = "Equi-Power (E)",
         ["8"] = "F8",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<string, string> ColorantTypes = new(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> ColorantTypes = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["0"] = "Unknown",
         ["1"] = "ITU-R BT.709",
         ["2"] = "SMPTE RP145",
         ["3"] = "EBU Tech.3213-E",
         ["4"] = "P22",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<string, string> TagNames = new(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> TagNames = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["A2B0"] = "AToB0",
         ["A2B1"] = "AToB1",
@@ -149,9 +151,9 @@ internal static class IccFormatting
         ["view"] = "Viewing conditions",
         ["vued"] = "Viewing conditions description",
         ["wtpt"] = "Media white point",
-    };
+    }.ToFrozenDictionary();
 
-    private static readonly Dictionary<string, string> TypeNames = new(StringComparer.Ordinal)
+    private static readonly FrozenDictionary<string, string> TypeNames = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["XYZ "] = "XYZType",
         ["curv"] = "curveType",
@@ -173,7 +175,7 @@ internal static class IccFormatting
         ["mAB "] = "lutAtoBType",
         ["mBA "] = "lutBtoAType",
         ["mpet"] = "multiProcessElementType",
-    };
+    }.ToFrozenDictionary();
 
     public static string Signature(ReadOnlySpan<byte> bytes) => RawIdentifier.FormatBytes(bytes);
 
@@ -244,32 +246,11 @@ internal static class IccFormatting
             : "invalid";
     }
 
-    public static string Text(string value)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-        var builder = new StringBuilder(value.Length);
-        foreach (var character in value)
-        {
-            if (character is '\r' or '\n' or '\t')
-            {
-                builder.Append(character == '\r' ? "\\r" : character == '\n' ? "\\n" : "\\t");
-            }
-            else if (character < 0x20 || character == 0x7F)
-            {
-                builder.Append("\\x").Append(((int)character).ToString("X2", CultureInfo.InvariantCulture));
-            }
-            else
-            {
-                builder.Append(character);
-            }
-        }
+    public static string Text(string value) => TextEscaping.Escape(value, escapeNull: false);
 
-        return builder.ToString();
-    }
+    public static string Latin1(ReadOnlySpan<byte> bytes) => TextDecoding.Display(bytes, TextEncodings.Latin1);
 
-    public static string Latin1(ReadOnlySpan<byte> bytes) => Text(Encoding.Latin1.GetString(bytes));
-
-    public static string Utf16Be(ReadOnlySpan<byte> bytes) => Text(Encoding.BigEndianUnicode.GetString(bytes));
+    public static string Utf16Be(ReadOnlySpan<byte> bytes) => TextDecoding.Display(bytes, Encoding.BigEndianUnicode);
 
     private static string Named(IReadOnlyDictionary<string, string> names, uint value)
     {
@@ -277,9 +258,4 @@ internal static class IccFormatting
         return names.TryGetValue(key, out var name) ? $"{value} ({name})" : key;
     }
 
-    private static string Named(IReadOnlyDictionary<string, string> names, ushort value)
-    {
-        var key = value.ToString(CultureInfo.InvariantCulture);
-        return names.TryGetValue(key, out var name) ? $"{value} ({name})" : key;
-    }
 }

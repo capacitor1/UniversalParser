@@ -236,7 +236,7 @@ internal sealed class FlvDocumentParser : IDisposable
         return CreateTagNode(offset, tagEnd, tagType, children.ToImmutable());
     }
 
-    private FormatNode CreateTagNode(long offset, long end, byte tagType, ImmutableArray<FormatNode> children) =>
+    private static FormatNode CreateTagNode(long offset, long end, byte tagType, ImmutableArray<FormatNode> children) =>
         new(
             BuildTagName(tagType),
             NodeKind.Container,

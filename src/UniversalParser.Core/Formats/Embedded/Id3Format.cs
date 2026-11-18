@@ -1,11 +1,14 @@
+using System.Globalization;
+
 namespace UniversalParser.Core.Formats.Embedded;
 
 /// <summary>Display helpers shared by the ID3 frame decoders.</summary>
 internal static class Id3Format
 {
-    public static string Hex(int value, int digits = 2) => "0x" + value.ToString("X" + digits);
+    public static string Hex(int value, int digits = 2) =>
+        "0x" + value.ToString("X" + digits, CultureInfo.InvariantCulture);
 
-    public static string Number(int value) => value.ToString();
+    public static string Number(int value) => value.ToString(CultureInfo.InvariantCulture);
 
     public static string PayloadTypeFromMime(string mime)
     {

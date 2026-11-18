@@ -1,3 +1,6 @@
+using System.Globalization;
+using UniversalParser.Core.Formatting;
+
 namespace UniversalParser.Core.Formats.Embedded;
 
 /// <summary>
@@ -22,11 +25,11 @@ internal readonly struct Id3Sink
 
     public Id3Sink Scope(string name) => new(_lines, Join(Path, name));
 
-    public void Text(string key, string? value) => Add(key, value ?? string.Empty);
+    public void Text(string key, string? value) => Add(key, TextEscaping.Escape(value ?? string.Empty));
 
-    public void Number(string key, int value) => Add(key, value.ToString());
+    public void Number(string key, int value) => Add(key, value.ToString(CultureInfo.InvariantCulture));
 
-    public void Number(string key, long value) => Add(key, value.ToString());
+    public void Number(string key, long value) => Add(key, value.ToString(CultureInfo.InvariantCulture));
 
     public void Verbatim(string key, string? value) => Add(key, value ?? string.Empty);
 

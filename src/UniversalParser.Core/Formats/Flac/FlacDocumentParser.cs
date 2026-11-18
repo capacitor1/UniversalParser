@@ -277,7 +277,7 @@ internal sealed class FlacDocumentParser
         return (builder.ToImmutable(), payloadRange);
     }
 
-    private void AddAudioFrames(ImmutableArray<FormatNode>.Builder children, long start, long end)
+    private static void AddAudioFrames(ImmutableArray<FormatNode>.Builder children, long start, long end)
     {
         if (start >= end)
         {

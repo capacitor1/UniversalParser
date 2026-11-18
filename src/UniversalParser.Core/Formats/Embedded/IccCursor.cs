@@ -126,10 +126,7 @@ internal sealed class IccCursor
     public byte[] ReadBytes(int count)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(count);
-        if (count > Remaining)
-        {
-            throw new ArgumentOutOfRangeException(nameof(count));
-        }
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(count, Remaining);
 
         var bytes = _data.AsSpan(_position, count).ToArray();
         SetLast(_position, count);

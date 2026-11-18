@@ -189,7 +189,7 @@ internal static class GeneralBoxes
             return null;
         }
 
-        var text = IsoBmffFormatting.DecodeText(payload).Trim('\0');
+        var text = IsoBmffFormatting.DecodeText(payload);
         if (text.Length == 0)
         {
             return null;
