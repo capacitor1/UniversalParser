@@ -47,3 +47,21 @@ Copy-Item universalparser.limits.example.json dist\
 ## 已知限制
 
 见 `docs/01-open-issues.md`；产品行为与 v1.0.0 一致，本版为质量维护与重新发布。
+
+## GitHub 发布与 Issue 收尾（2026-11-19）
+
+- 用户完成手动审查后，源码提交
+  [`cce6ec8fb6570c9071ca3cc94cb797038bc8e80e`](https://github.com/capacitor1/UniversalParser/commit/cce6ec8fb6570c9071ca3cc94cb797038bc8e80e)
+  已推送到 `main`；`v1.0.1` 标签指向该提交。
+- [UniversalParser v1.0.1 Release](https://github.com/capacitor1/UniversalParser/releases/tag/v1.0.1)
+  已正式发布（非 draft、非 prerelease），并确认为 latest。
+- 两个附件已上传，大小与 GitHub 返回的 SHA-256 均与本地 `dist/` 一致：
+  - `UniversalParser_1.0.1.exe`：1,423,007 bytes，SHA-256 见上文。
+  - `universalparser.limits.example.json`：86 bytes，SHA-256
+    `E749AC599F41893DD33BBAC7782AFBE9BF17F750CE4DE80804B96D7B5C223A04`。
+- EXE 启动验证通过：进程存活、主窗口标题为 `Universal Parser`、文件版本为 `1.0.1.0`；未截图。
+- [Issue #1](https://github.com/capacitor1/UniversalParser/issues/1) 已关闭，原因为 `completed`。
+  上次关闭时误写入正文的发布说明已移出；原始正文从 GitHub 编辑历史恢复，处理范围和验证结果记录在
+  [关闭评论](https://github.com/capacitor1/UniversalParser/issues/1#issuecomment-6984757274)。
+- 发布说明已更新为正式版本说明，不再将“本地发布、未提交”的历史状态当作当前状态。
+- 此次收尾仅补充发布文档及 GitHub 状态；没有重新编译或替换用户已审查的 EXE，也没有移动发布标签。

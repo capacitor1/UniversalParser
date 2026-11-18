@@ -189,7 +189,7 @@ fixtures/                    临时真实样本（验证后删除，自动化测
 | 版本 | 日期 | 内容 |
 |---|---|---|
 | 1.0.0 | 2026-11-18 | Phase 8 收尾；文档压缩/归档；单文件 framework-dependent 发布到 `dist/` |
-| 1.0.1 | 2026-11-19 | issue#1 代码质量维护：文本规则统一、共享工具、`FrozenDictionary`、Protobuf 预览；本地重新发布 |
+| 1.0.1 | 2026-11-19 | issue#1 代码质量维护：文本规则统一、共享工具、`FrozenDictionary`、Protobuf 预览；[GitHub Release](https://github.com/capacitor1/UniversalParser/releases/tag/v1.0.1) 已发布 |
 
 ## 许可证
 

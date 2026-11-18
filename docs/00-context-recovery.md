@@ -54,9 +54,11 @@ FLAC  Blender .blend (uncompressed)  Protocol Buffers  Minecraft NBT (uncompress
 
 ## 4. 当前状态（v1.0.1）
 
-- Phase 0–7 完成；Phase 8 文档收尾、归档与发布已完成；2026-11-19 完成 issue#1 代码质量维护并本地发布 v1.0.1。
+- Phase 0–7 完成；Phase 8 文档收尾、归档与发布已完成；2026-11-19 完成 issue#1 代码质量维护并发布 v1.0.1。
 - 发布物：`dist/UniversalParser_1.0.1.exe`（win-x64，单文件，framework-dependent）+
   `universalparser.limits.example.json`（无注释示例）。需要安装 .NET 10 Desktop Runtime (x64)。
+- 源码提交 `cce6ec8` 与标签 `v1.0.1` 已推送；[GitHub Release](https://github.com/capacitor1/UniversalParser/releases/tag/v1.0.1)
+  附件与本地 `dist/` 哈希一致；[Issue #1](https://github.com/capacitor1/UniversalParser/issues/1) 已按确认范围关闭。
 - `dotnet build` 0 warning / 0 error（`AnalysisLevel=latest-all`）；`dotnet test` **170 passed**
   （仅框架层与部分格式回归）；
   `dotnet format --verify-no-changes` 通过。
@@ -113,3 +115,4 @@ Phase 8    文档收尾、归档与 v1.0.0 发布（已完成；旧代码不在�
 | 2026-11-18 | Phase 8：文档压缩并建立 `docs/archive/`；无注释 limits 示例；v1.0.0 单文件（framework-dependent）发布到 `dist/` |
 | 2026-11-19 | issue#1：统一文本显示/编码策略；共享编码、转义与有界读取；`FrozenDictionary`；Protobuf 派生预览；Windows 保留名；`latest-all` 与 `RollForward` |
 | 2026-11-19 | v1.0.1 本地发布：`dist/UniversalParser_1.0.1.exe` + limits 示例；未做 git 提交 |
+| 2026-11-19 | 手动审查后推送 `cce6ec8` 与 `v1.0.1`；GitHub Release 两个附件校验通过；Issue #1 正文保留、评论记录处理范围并关闭；EXE 无截图启动验证通过 |

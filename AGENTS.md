@@ -6,7 +6,7 @@
 
 ## 1. 当前阶段
 
-**v1.0.1 已本地发布（Phase 8 + issue#1 维护）。** Phase 0–7 已完成，发布物在 `dist/`：
+**v1.0.1 已发布（Phase 8 + issue#1 维护）。** Phase 0–7 已完成，发布物在 `dist/`：
 `UniversalParser_1.0.1.exe`（win-x64、单文件、framework-dependent，依赖 .NET 10 Desktop Runtime）+
 无注释的 limits 示例。
 

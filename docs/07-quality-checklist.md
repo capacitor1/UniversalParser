@@ -96,6 +96,9 @@
 - [x] `universalparser.limits.example.json` 为无注释 JSON，并随 `dist/` 发布
 - [x] `dist/UniversalParser_<version>.exe` 单文件 framework-dependent（win-x64）
 - [x] 发布目录不含 PDB/XML 文档等额外文件
+- [x] `v1.0.1` GitHub Release 两个附件与本地 `dist/` 的大小、SHA-256 一致
+- [x] `dist/UniversalParser_1.0.1.exe` 启动验证通过（进程状态、窗口标题、文件版本；不截图）
+- [x] 源码与 `v1.0.1` 标签已推送；Issue #1 正文保留、处理范围以评论记录，状态为 `closed/completed`
 
 发布命令：
 

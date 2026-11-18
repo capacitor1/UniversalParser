@@ -20,6 +20,7 @@
 | Phase 8 | 2026-11-18 | 文档压缩与归档；无注释 limits 示例；v1.0.0 单文件（framework-dependent）发布到 `dist/` |
 | 维护 | 2026-11-19 | issue#1：统一文本规则、共享编码/转义/有界读取、`FrozenDictionary`、Protobuf 派生预览、诊断与 `RollForward` |
 | 发布 | 2026-11-19 | v1.0.1 本地发布：`dist/UniversalParser_1.0.1.exe` + limits 示例；未做 git 提交 |
+| 发布收尾 | 2026-11-19 | 手动审查通过后推送 `cce6ec8` 与 `v1.0.1`，发布 GitHub Release 两个附件；校验哈希与启动，保留 Issue #1 正文并补充关闭评论 |
 
 Phase 6 起测试范围收缩为框架底层与部分格式回归；不再保留旧格式/GUI 测试。
 当前 `dotnet test` 为 **170 passed**。
